@@ -1,0 +1,27 @@
+baseURL: https://example.org/
+locale: en-us
+title: Tseng's Infrastructure Blog
+author: Tseng
+description: A blog about infrastructure and technology.
+theme: hextra
+
+menu:
+  main:
+    - name: About Me
+      weight: 1
+      pageRef: /aboutme
+    - name: Side Projects
+      weight: 2
+      pageRef: /blog/sideprojects
+    - name: Technotes
+      weight: 3
+      pageRef: /blog/technotes
+    - name: Search
+      weight: 4
+      params:
+        type: search
+    - name: GitHub
+      weight: 5
+      url: "https://github.com/YukunTseng?tab=repositories"
+      params:
+        icon: github
