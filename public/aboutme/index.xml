@@ -1,13 +1,13 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Tseng&#39;s Infrastructure Blog – About Me</title>
-    <link>http://localhost:1313/aboutme/</link>
-    <description>Recent content in About Me on Tseng&#39;s Infrastructure Blog</description>
+    <title>Infrastructure Engineer - Yukun Tseng – About Me</title>
+    <link>//localhost:1313/aboutme/</link>
+    <description>Recent content in About Me on Infrastructure Engineer - Yukun Tseng</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <lastBuildDate>Sat, 23 May 2026 16:06:30 +0900</lastBuildDate>
     
-	  <atom:link href="http://localhost:1313/aboutme/index.xml" rel="self" type="application/rss+xml" />
+	  <atom:link href="//localhost:1313/aboutme/index.xml" rel="self" type="application/rss+xml" />
     
     
       

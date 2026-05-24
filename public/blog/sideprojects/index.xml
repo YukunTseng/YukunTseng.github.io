@@ -1,13 +1,13 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Tseng&#39;s Infrastructure Blog – Side Projects</title>
-    <link>http://localhost:1313/blog/sideprojects/</link>
-    <description>Recent content in Side Projects on Tseng&#39;s Infrastructure Blog</description>
+    <title>Infrastructure Engineer - Yukun Tseng – Side Projects</title>
+    <link>//localhost:1313/blog/sideprojects/</link>
+    <description>Recent content in Side Projects on Infrastructure Engineer - Yukun Tseng</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <lastBuildDate>Sat, 23 May 2026 16:32:20 +0900</lastBuildDate>
     
-	  <atom:link href="http://localhost:1313/blog/sideprojects/index.xml" rel="self" type="application/rss+xml" />
+	  <atom:link href="//localhost:1313/blog/sideprojects/index.xml" rel="self" type="application/rss+xml" />
     
     
       

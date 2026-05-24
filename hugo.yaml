@@ -1,6 +1,6 @@
 baseURL: 
 locale: en-us
-title: Tseng's Infrastructure Blog
+title: Infrastructure Engineer - Yukun Tseng
 author: Tseng
 description: This is a blog about infrastructure and technology.
 theme: hextra
@@ -22,6 +22,6 @@ menu:
         type: search
     - name: GitHub
       weight: 5
-      url: "https://github.com/YukunTseng?tab=repositories"
+      url: "https://github.com/YukunTseng/YukunTseng.github.io"
       params:
         icon: github
