@@ -1,8 +1,8 @@
-baseURL: https://github.com/YukunTseng/YukunTseng.github.io/infra_tseng/
+baseURL: https://github.com/YukunTseng/YukunTseng.github.io
 locale: en-us
 title: Tseng's Infrastructure Blog
 author: Tseng
-description: A blog about infrastructure and technology
+description: A blog about infrastructure and technology.
 theme: hextra
 
 menu:
