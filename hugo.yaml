@@ -2,7 +2,7 @@ baseURL:
 locale: en-us
 title: Tseng's Infrastructure Blog
 author: Tseng
-description: A blog about infrastructure and technology.
+description: This is a blog about infrastructure and technology.
 theme: hextra
 
 menu:
