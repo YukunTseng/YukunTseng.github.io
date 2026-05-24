@@ -127,8 +127,8 @@ document.addEventListener('DOMContentLoaded', function () {
   const faviconDarkExists = "false" === "true";
 
   if (faviconEl && faviconDarkExists) {
-    const lightFavicon = '/infra-tseng-blog/favicon.svg';
-    const darkFavicon = '/infra-tseng-blog/favicon-dark.svg';
+    const lightFavicon = '/favicon.svg';
+    const darkFavicon = '/favicon-dark.svg';
 
     const darkModeQuery = window.matchMedia("(prefers-color-scheme: dark)");
 

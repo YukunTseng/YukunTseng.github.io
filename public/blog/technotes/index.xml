@@ -1,13 +1,13 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Tseng&#39;s Infrastructure Blog – Technotes</title>
-    <link>http://localhost:1313/infra-tseng-blog/blog/technotes/</link>
+    <link>http://localhost:1313/blog/technotes/</link>
     <description>Recent content in Technotes on Tseng&#39;s Infrastructure Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <lastBuildDate>Sat, 23 May 2026 16:32:02 +0900</lastBuildDate>
     
-	  <atom:link href="http://localhost:1313/infra-tseng-blog/blog/technotes/index.xml" rel="self" type="application/rss+xml" />
+	  <atom:link href="http://localhost:1313/blog/technotes/index.xml" rel="self" type="application/rss+xml" />
     
     
       
@@ -17,10 +17,10 @@
     
     <item>
       <title>安裝「VMware Workstation Pro」並簡單建置VM</title>
-      <link>http://localhost:1313/infra-tseng-blog/blog/technotes/vmware-workstation-pro/</link>
+      <link>http://localhost:1313/blog/technotes/vmware-workstation-pro/</link>
       <pubDate>Tue, 12 May 2026 16:30:29 +0900</pubDate>
       
-      <guid>http://localhost:1313/infra-tseng-blog/blog/technotes/vmware-workstation-pro/</guid>
+      <guid>http://localhost:1313/blog/technotes/vmware-workstation-pro/</guid>
       <description>
         
         
