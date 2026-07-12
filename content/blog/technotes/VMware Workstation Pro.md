@@ -1,13 +1,14 @@
 ---
 date: '2026-05-12T16:30:29+09:00'
 draft: true
-title: "安裝「VMware Workstation Pro」並簡單建置VM"
+title: "【Hypervisor】安裝「VMware Workstation Pro」並簡單建置VM"
 authors:
     - name: Tseng 
       pageRef: /aboutme
----
+-------------------------------------------------------------------
 本文記錄了從取得VMware Workstation Pro Installer檔，到實際安裝、建置VM的過程。
 <!--more-->
+-------------------------------------------------------------------
 
 ### 前言
 筆者搭建VM測試環境時向來都是選擇VirtualBox，原因不外乎就是它開源免費、搭建快速與輕量方便，對於只是想要一個簡單VM的人來說相當友善。而商用VMware產品「Workstation」與「Fusion」等由於license因素，通常不會是個人使用或學習者面向的選擇。
@@ -147,5 +148,8 @@ VMware官方於2024年11月宣布旗下虛擬化桌面軟體「Workstation 」�
 
 ### 最後
 本文記錄了從一開始取得VMware Workstation Pro Installer檔，到實際安裝、建置VM的過程。除了一開始取得Installer步驟較繁瑣，其餘安裝之後的VM建置流程概念跟其他虛擬化軟體是一樣的。
-相較長時間使用的VirtualBox，VMware Workstation Pro體感使用上最大的覺察，應該是主控畫面UI質感提升了一個檔次，使用起來簡潔直觀舒適，能感受到一定的商用質感。
+
+相較一直以來使用的VirtualBox，VMware Workstation Pro體感使用上最大的覺察，應該是主控畫面UI質感提升了一個檔次，使用起來簡潔直觀舒適，能感受到一定的商用質感。
 下載安裝VMware Workstation的教學與文章很多，感謝您選擇此篇並且閱讀到最後。
+
+-------------------------------------------------------------------
