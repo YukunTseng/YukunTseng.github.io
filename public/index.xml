@@ -166,7 +166,7 @@
 &lt;hr&gt;
 &lt;h3&gt;最後&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;最後&#34;&gt;&lt;/span&gt;
     &lt;a href=&#34;#%e6%9c%80%e5%be%8c&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h3&gt;&lt;p&gt;本文記錄了從一開始取得VMware Workstation Pro Installer檔，到實際安裝、建置VM的過程。除了一開始取得Installer步驟較繁瑣，其餘安裝之後的VM建置流程概念跟其他虛擬化軟體是一樣的。&lt;/p&gt;
-&lt;p&gt;相較長時間使用的VirtualBox，VMware Workstation Pro體感使用上最大的覺察，應該是主控畫面UI質感提升了一個檔次，使用起來簡潔直觀舒適，能感受到一定的商用質感。
+&lt;p&gt;相較一直以來使用的VirtualBox，VMware Workstation Pro體感使用上最大的覺察，應該是主控畫面UI質感提升了一個檔次，使用起來簡潔直觀舒適，能感受到一定的商用質感。
 下載安裝VMware Workstation的教學與文章很多，感謝您選擇此篇並且閱讀到最後。&lt;/p&gt;
 &lt;hr&gt;
       </description>
