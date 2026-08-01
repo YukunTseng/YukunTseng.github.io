@@ -19,4 +19,4 @@ function setTheme(theme) {
   document.documentElement.style.colorScheme = theme;
 }
 
-setTheme("color-theme" in localStorage ? localStorage.getItem("color-theme") : 'system')
+setTheme("color-theme" in localStorage ? localStorage.getItem("color-theme") : 'dark')

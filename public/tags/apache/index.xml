@@ -1,0 +1,130 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>SoTech – Apache</title>
+    <link>//localhost:1313/tags/apache/</link>
+    <description>Recent content in Apache on SoTech</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Sun, 19 Jul 2026 09:00:00 +0900</lastBuildDate>
+    
+	  <atom:link href="//localhost:1313/tags/apache/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+      
+        
+      
+    
+    
+    <item>
+      <title>Project#01【性能調査】Apache HTTPサーバにおいて、Throughputを制限する要因は何か</title>
+      <link>//localhost:1313/blog/sideprojects/apache-throughput-monitoring/</link>
+      <pubDate>Sun, 19 Jul 2026 09:00:00 +0900</pubDate>
+      
+      <guid>//localhost:1313/blog/sideprojects/apache-throughput-monitoring/</guid>
+      <description>
+        
+        
+        &lt;hr&gt;
+&lt;p&gt;Apache＋JMeter＋自作リソースログ収集スクリプトを用いて、CPU使用率、Apache Worker数、Linuxスケジューラの観点から検証し、調査結果を本記事にまとめてみました。&lt;/p&gt;
+&lt;hr&gt;
+&lt;p&gt;先に今回の検証結果をお伝えすると、CPU使用率だけではなく、
+LinuxスケジューラによるCPU Resource Contentionも、Throughputを制限する要因であることが確認できました。
+それでは、実際の検証内容と測定結果について説明していきます。&lt;/p&gt;
+&lt;h2&gt;はじめに&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;はじめに&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#%e3%81%af%e3%81%98%e3%82%81%e3%81%ab&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Webサーバの性能を評価する際は、CPU使用率だけを見て、「CPUがボトルネック」と判断してしまうケースがあります。
+しかし、本当にCPU使用率だけで性能限界を説明できるのかを判明したいので、
+今回はJMeterと自作リソースログ収集スクリプトを用いて、
+Apache HTTPサーバの性能限界を調査しました。&lt;/p&gt;
+&lt;h2&gt;検証目的&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;検証目的&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#%e6%a4%9c%e8%a8%bc%e7%9b%ae%e7%9a%84&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;今回検証したいこと：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;CPU使用率とThroughputの関係&lt;/li&gt;
+&lt;li&gt;Apache Worker数の変化&lt;/li&gt;
+&lt;li&gt;Response Timeとの関係&lt;/li&gt;
+&lt;li&gt;Linuxスケジューラの影響&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2&gt;システム構成&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;システム構成&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#%e3%82%b7%e3%82%b9%e3%83%86%e3%83%a0%e6%a7%8b%e6%88%90&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h2&gt;&lt;h3&gt;構成図&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;構成図&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#%e6%a7%8b%e6%88%90%e5%9b%b3&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h3&gt;&lt;p&gt;&lt;figure&gt;
+    &lt;img src=&#34;//localhost:1313/blog/sideprojects/apache-throughput-monitoring/images/%E6%A7%8B%E6%88%90%E5%9B%B3.jpg&#34; title=&#34;構成図&#34; alt=&#34;構成図&#34;  data-zoomable loading=&#34;lazy&#34; /&gt;
+    &lt;figcaption&gt;構成図&lt;/figcaption&gt;
+  &lt;/figure&gt;&lt;/p&gt;
+&lt;h3&gt;導入ソフトウェア&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;導入ソフトウェア&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#%e5%b0%8e%e5%85%a5%e3%82%bd%e3%83%95%e3%83%88%e3%82%a6%e3%82%a7%e3%82%a2&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h3&gt;&lt;table&gt;
+  &lt;thead&gt;
+      &lt;tr&gt;
+          &lt;th&gt;項目&lt;/th&gt;
+          &lt;th&gt;製品&lt;/th&gt;
+      &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+      &lt;tr&gt;
+          &lt;td&gt;ハイパーバイザー&lt;/td&gt;
+          &lt;td&gt;VMware(R) Workstation Pro 26H1&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;OS&lt;/td&gt;
+          &lt;td&gt;Rocky Linux 10.1&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;Apache&lt;/td&gt;
+          &lt;td&gt;2.4.63&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+      &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h2&gt;負荷試験方法&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;負荷試験方法&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#%e8%b2%a0%e8%8d%b7%e8%a9%a6%e9%a8%93%e6%96%b9%e6%b3%95&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h2&gt;&lt;h2&gt;観測指標&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;観測指標&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#%e8%a6%b3%e6%b8%ac%e6%8c%87%e6%a8%99&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h2&gt;&lt;h2&gt;測定結果&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;測定結果&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#%e6%b8%ac%e5%ae%9a%e7%b5%90%e6%9e%9c&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h2&gt;&lt;h2&gt;考察&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;考察&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#%e8%80%83%e5%af%9f&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h2&gt;&lt;pre&gt;&lt;code&gt;                    Apache Throughputのボトルネックを調査
+                               │
+             ┌─────────────────┴─────────────────┐
+             │                                   │
+      仮説① CPU使用率が原因               仮説② Apache Worker数が原因
+             │                                   │
+             │                                   │
+     CPU Utilizationを計測             BusyWorkers / IdleWorkersを計測
+             │                                   │
+             └─────────────────┬─────────────────┘
+                               │
+                     十分な相関は確認できず
+                               │
+                               ▼
+               仮説③ CPU Resource Contentionが原因
+                               │
+          ┌────────────────────┴────────────────────┐
+          │                                         │
+  Context Switchを計測                    Run Queueを計測
+          │                                         │
+          └────────────────────┬────────────────────┘
+                               │
+                               ▼
+              Throughputが頭打ちになる時点で
+         Context Switch・Run Queueが急増することを確認
+                               │
+                               ▼
+                CPU SchedulerによるResource Contentionが
+              Throughput制限の主要因であることを検証
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h2&gt;まとめ&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;まとめ&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#%e3%81%be%e3%81%a8%e3%82%81&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;今回の検証では、&lt;/p&gt;
+&lt;p&gt;①&lt;/p&gt;
+&lt;p&gt;CPU使用率だけでは性能限界を説明できなかった。&lt;/p&gt;
+&lt;p&gt;②&lt;/p&gt;
+&lt;p&gt;Apache Worker数も限界ではなかった。&lt;/p&gt;
+&lt;p&gt;③&lt;/p&gt;
+&lt;p&gt;Linux SchedulerによるCPU Resource Contentionが
+Throughputを制限していたと考えられる。&lt;/p&gt;
+      </description>
+    </item>
+    
+  </channel>
+</rss>

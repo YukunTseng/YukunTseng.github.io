@@ -2,8 +2,42 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
-    <loc>/categories/</loc>
+    <loc>//localhost:1313/aboutme/</loc>
+    <lastmod>2026-05-23T16:06:30+09:00</lastmod>
   </url><url>
-    <loc>/tags/</loc>
+    <loc>//localhost:1313/</loc>
+    <lastmod>2026-07-19T09:00:00+09:00</lastmod>
+  </url><url>
+    <loc>//localhost:1313/blog/</loc>
+    <lastmod>2026-07-19T09:00:00+09:00</lastmod>
+  </url><url>
+    <loc>//localhost:1313/tags/apache/</loc>
+    <lastmod>2026-07-19T09:00:00+09:00</lastmod>
+  </url><url>
+    <loc>//localhost:1313/tags/jmeter/</loc>
+    <lastmod>2026-07-19T09:00:00+09:00</lastmod>
+  </url><url>
+    <loc>//localhost:1313/tags/linux/</loc>
+    <lastmod>2026-07-19T09:00:00+09:00</lastmod>
+  </url><url>
+    <loc>//localhost:1313/blog/sideprojects/apache-throughput-monitoring/</loc>
+    <lastmod>2026-07-19T09:00:00+09:00</lastmod>
+  </url><url>
+    <loc>//localhost:1313/tags/</loc>
+    <lastmod>2026-07-19T09:00:00+09:00</lastmod>
+  </url><url>
+    <loc>//localhost:1313/blog/sideprojects/</loc>
+    <lastmod>2026-05-23T16:32:20+09:00</lastmod>
+  </url><url>
+    <loc>//localhost:1313/blog/technotes/</loc>
+    <lastmod>2026-05-23T16:32:02+09:00</lastmod>
+  </url><url>
+    <loc>//localhost:1313/blog/technotes/vmware-workstation-pro/</loc>
+    <lastmod>2026-05-12T16:30:29+09:00</lastmod>
+  </url><url>
+    <loc>//localhost:1313/tags/vmware/</loc>
+    <lastmod>2026-05-12T16:30:29+09:00</lastmod>
+  </url><url>
+    <loc>//localhost:1313/categories/</loc>
   </url>
 </urlset>

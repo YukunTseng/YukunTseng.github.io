@@ -1,8 +1,8 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Infrastructure Engineer - Yukun Tseng – About Me</title>
+    <title>SoTech – About Me</title>
     <link>//localhost:1313/aboutme/</link>
-    <description>Recent content in About Me on Infrastructure Engineer - Yukun Tseng</description>
+    <description>Recent content in About Me on SoTech</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <lastBuildDate>Sat, 23 May 2026 16:06:30 +0900</lastBuildDate>

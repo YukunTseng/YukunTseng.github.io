@@ -1,8 +1,8 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Infrastructure Engineer - Yukun Tseng – Side Projects</title>
+    <title>SoTech – Side Projects</title>
     <link>//localhost:1313/blog/sideprojects/</link>
-    <description>Recent content in Side Projects on Infrastructure Engineer - Yukun Tseng</description>
+    <description>Recent content in Side Projects on SoTech</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <lastBuildDate>Sat, 23 May 2026 16:32:20 +0900</lastBuildDate>
@@ -14,6 +14,495 @@
         
       
     
+    
+    <item>
+      <title>Project#01【性能調査】Apache HTTPサーバにおいて、Throughputを制限する要因は何か</title>
+      <link>//localhost:1313/blog/sideprojects/apache-throughput-monitoring/</link>
+      <pubDate>Sun, 19 Jul 2026 09:00:00 +0900</pubDate>
+      
+      <guid>//localhost:1313/blog/sideprojects/apache-throughput-monitoring/</guid>
+      <description>
+        
+        
+        &lt;hr&gt;
+&lt;p&gt;Apache＋JMeter＋自作リソースログ収集スクリプトを用いて、CPU使用率、Apache Worker数、Linuxスケジューラの観点から検証し、調査結果を本記事にまとめてみました。&lt;/p&gt;
+&lt;hr&gt;
+&lt;p&gt;先に今回の検証結果をお伝えすると、CPU使用率だけではなく、
+LinuxスケジューラによるCPU Resource Contentionも、Throughputを制限する要因であることが確認できました。
+それでは、実際の検証内容と測定結果について説明していきます。&lt;/p&gt;
+&lt;h2&gt;1. はじめに&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;1-はじめに&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#1-%e3%81%af%e3%81%98%e3%82%81%e3%81%ab&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Webサーバの性能を評価する際は、CPU使用率だけを見て、「CPUがボトルネック」と判断してしまうケースがあります。
+しかし、本当にCPU使用率だけで性能限界を説明できるのかを判明したいので、
+今回はJMeterと自作リソースログ収集スクリプトを用いて、
+Apache HTTPサーバの性能限界を調査しました。&lt;/p&gt;
+&lt;h2&gt;2. 検証目的&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;2-検証目的&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#2-%e6%a4%9c%e8%a8%bc%e7%9b%ae%e7%9a%84&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;今回検証したいこと：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;CPU使用率とThroughputの関係&lt;/li&gt;
+&lt;li&gt;Apache Worker数の変化&lt;/li&gt;
+&lt;li&gt;Response Timeとの関係&lt;/li&gt;
+&lt;li&gt;Linuxスケジューラの影響&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2&gt;3. システム構成&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;3-システム構成&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#3-%e3%82%b7%e3%82%b9%e3%83%86%e3%83%a0%e6%a7%8b%e6%88%90&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h2&gt;&lt;h3&gt;3.1. 構成図&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;31-構成図&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#31-%e6%a7%8b%e6%88%90%e5%9b%b3&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h3&gt;&lt;p&gt;&lt;figure&gt;
+    &lt;img src=&#34;//localhost:1313/blog/sideprojects/apache-throughput-monitoring/images/%E6%A7%8B%E6%88%90%E5%9B%B3.jpg&#34; title=&#34;構成図&#34; alt=&#34;構成図&#34;  data-zoomable loading=&#34;lazy&#34; /&gt;
+    &lt;figcaption&gt;構成図&lt;/figcaption&gt;
+  &lt;/figure&gt;&lt;/p&gt;
+&lt;h3&gt;3.2. 導入ソフトウェア&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;32-導入ソフトウェア&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#32-%e5%b0%8e%e5%85%a5%e3%82%bd%e3%83%95%e3%83%88%e3%82%a6%e3%82%a7%e3%82%a2&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h3&gt;&lt;table&gt;
+  &lt;thead&gt;
+      &lt;tr&gt;
+          &lt;th&gt;項目&lt;/th&gt;
+          &lt;th&gt;製品&lt;/th&gt;
+      &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+      &lt;tr&gt;
+          &lt;td&gt;ハイパーバイザー&lt;/td&gt;
+          &lt;td&gt;VMware(R) Workstation Pro 26H1&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;OS&lt;/td&gt;
+          &lt;td&gt;Rocky Linux 10.1&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;HTTPサーバ&lt;/td&gt;
+          &lt;td&gt;Apache 2.4.63&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;ロードツール&lt;/td&gt;
+          &lt;td&gt;JMeter 5.6.3&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;PHP&lt;/td&gt;
+          &lt;td&gt;php-fpm 8.3.31&lt;/td&gt;
+      &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h2&gt;4. 負荷試験方法&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;4-負荷試験方法&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#4-%e8%b2%a0%e8%8d%b7%e8%a9%a6%e9%a8%93%e6%96%b9%e6%b3%95&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;JMeterを用いて仮想サーバ（ホスト名：MonitorServer）に対し、事前に作成した負荷試験用PHPスクリプトへHTTPリクエストを送信し、負荷試験を実施しました。&lt;/p&gt;
+&lt;p&gt;各試験では JMeter ThreadGroupの設定を固定し、Thread数（仮想ユーザ数）のみを段階的に増加させることで、システム負荷の変化がスループットやOSリソースに与える影響を観察しました。&lt;/p&gt;
+&lt;p&gt;負荷試験は合計25回実施しています。&lt;/p&gt;
+&lt;h3&gt;4.1. JMeter設定&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;41-jmeter設定&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#41-jmeter%e8%a8%ad%e5%ae%9a&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h3&gt;&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;各試験で使用したThreadGroupの設定は以下の通りです。&lt;/p&gt;
+&lt;table&gt;
+  &lt;thead&gt;
+      &lt;tr&gt;
+          &lt;th&gt;項目&lt;/th&gt;
+          &lt;th&gt;設定値&lt;/th&gt;
+      &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+      &lt;tr&gt;
+          &lt;td&gt;Ramp-up Period&lt;/td&gt;
+          &lt;td&gt;10秒&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;Loop Count&lt;/td&gt;
+          &lt;td&gt;Infinite&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;Duration&lt;/td&gt;
+          &lt;td&gt;180秒&lt;/td&gt;
+      &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;メトリクス収集で使用したListenerのオブジェクトは以下の通りです。&lt;/p&gt;
+&lt;table&gt;
+  &lt;thead&gt;
+      &lt;tr&gt;
+          &lt;th&gt;項目&lt;/th&gt;
+          &lt;th&gt;使用オブジェクト&lt;/th&gt;
+      &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+      &lt;tr&gt;
+          &lt;td&gt;Listener&lt;/td&gt;
+          &lt;td&gt;Aggregate Report&lt;/td&gt;
+      &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;また、試験ごとにThread数のみを変更し、それ以外のパラメータはすべて同一条件としました。&lt;/p&gt;
+&lt;h3&gt;4.2. データ収集方法&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;42-データ収集方法&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#42-%e3%83%87%e3%83%bc%e3%82%bf%e5%8f%8e%e9%9b%86%e6%96%b9%e6%b3%95&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h3&gt;&lt;p&gt;負荷試験中は、JMeterと自作のデータ収集スクリプトを使用し、スループットやCPU使用率などの各種メトリクスを収集しました。また、システムが定常状態に入った後のデータだけを評価対象とするので、各試験では以下のルールでデータを集計しています。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;集計対象外：試験開始から30秒間（ウォームアップ期間）&lt;/li&gt;
+&lt;li&gt;集計対象　：残り150秒間（測定期間）&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;測定期間中に集計したデータは平均値を計算し、各試験の代表値として使用しました。&lt;/p&gt;
+&lt;h3&gt;4.3. 負荷試験用PHPスクリプト&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;43-負荷試験用phpスクリプト&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#43-%e8%b2%a0%e8%8d%b7%e8%a9%a6%e9%a8%93%e7%94%a8php%e3%82%b9%e3%82%af%e3%83%aa%e3%83%97%e3%83%88&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h3&gt;&lt;p&gt;ApacheとPHP-FPMに対して軽量なCPUワークロードを与えるため、以下のPHPスクリプトを使用しました。&lt;/p&gt;
+&lt;div class=&#34;hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code&#34;&gt;
+
+&lt;div class=&#34;hextra-code-filename not-prose&#34; dir=&#34;auto&#34;&gt;/var/www/html/cpu.php&lt;/div&gt;&lt;div&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-php&#34; data-lang=&#34;php&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;##平方根計算と加算処理を繰り返し実行することで、CPU負荷を発生させています
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;?&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;php&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;$sum &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;##処理時間は約8msとなるようにループ回数を調整(2500回)
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt;($i&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;;$i&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;2500&lt;/span&gt;;$i&lt;span style=&#34;color:#f92672&#34;&gt;++&lt;/span&gt;){
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    $sum &lt;span style=&#34;color:#f92672&#34;&gt;+=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;sqrt&lt;/span&gt;($i);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;echo&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Done : &lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;$sum&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;?&amp;gt;&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class=&#34;hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-8&#34;&gt;
+  &lt;button
+    class=&#34;hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50&#34;
+    title=&#34;Copy code&#34;
+    aria-label=&#34;Copy code&#34;
+    data-copied-label=&#34;Copied!&#34;
+  &gt;
+    &lt;div class=&#34;hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4&#34;&gt;&lt;/div&gt;
+&lt;div class=&#34;hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4&#34;&gt;&lt;/div&gt;
+  &lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;上記スクリプトで1リクエスト当たりの処理時間は、約8msであることが確認できています↓&lt;/p&gt;
+&lt;div class=&#34;hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code&#34;&gt;
+
+&lt;div class=&#34;hextra-code-filename not-prose&#34; dir=&#34;auto&#34;&gt;MonitorServer&lt;/div&gt;&lt;div&gt;&lt;pre&gt;&lt;code&gt;[root@MonitorServer ~]# time curl http://localhost/cpu.php
+ Done : 83308.126280442   ←1リクエストの処理結果
+ real 0m0.008s            ←1リクエスト当たり実請求時間に約0.008秒(8ミリ秒)
+ user 0m0.003s
+ sys 0m0.003s&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class=&#34;hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-8&#34;&gt;
+  &lt;button
+    class=&#34;hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50&#34;
+    title=&#34;Copy code&#34;
+    aria-label=&#34;Copy code&#34;
+    data-copied-label=&#34;Copied!&#34;
+  &gt;
+    &lt;div class=&#34;hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4&#34;&gt;&lt;/div&gt;
+&lt;div class=&#34;hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4&#34;&gt;&lt;/div&gt;
+  &lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;h3&gt;4.4.データフロー&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;44データフロー&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#44%e3%83%87%e3%83%bc%e3%82%bf%e3%83%95%e3%83%ad%e3%83%bc&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h3&gt;&lt;p&gt;今回負荷試験のデータフローは以下のイメージです。&lt;/p&gt;
+&lt;div role=&#34;img&#34; aria-label=&#34;Diagram&#34;&gt;
+  &lt;pre class=&#34;mermaid hx:mt-6&#34;&gt;
+    graph LR
+　
+    A[JMeter] --&amp;gt;|HTTPリクエスト| B[Apache]
+    B --&amp;gt;|FastCGI| C[PHP-FPM]
+    C --&amp;gt; D[cpu.php]
+    D --&amp;gt;|CPUワークロード| E[CPUスケジューラ]
+
+    C --&amp;gt;|HTTPレスポンス| B
+    B --&amp;gt;|HTTPレスポンス| A
+  &lt;/pre&gt;
+&lt;/div&gt;&lt;h2&gt;5. 観測指標&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;5-観測指標&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#5-%e8%a6%b3%e6%b8%ac%e6%8c%87%e6%a8%99&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;以下3観点から観測したい指標を選定しました。&lt;/p&gt;
+&lt;table&gt;
+  &lt;thead&gt;
+      &lt;tr&gt;
+          &lt;th&gt;観点&lt;/th&gt;
+          &lt;th&gt;指標&lt;/th&gt;
+          &lt;th&gt;収集手段&lt;/th&gt;
+      &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+      &lt;tr&gt;
+          &lt;td&gt;HTTP性能&lt;/td&gt;
+          &lt;td&gt;Throughput、Average、Median、90%、95%、99%、Max、Error%&lt;/td&gt;
+          &lt;td&gt;Aggregate Report出力&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;CPUリソース&lt;/td&gt;
+          &lt;td&gt;CPU Avg、Run Queue、Context Switch&lt;/td&gt;
+          &lt;td&gt;vmstat、mpstatコマンド(自作スクリプト利用)&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;Apache状態&lt;/td&gt;
+          &lt;td&gt;BusyWorkers、IdleWorkers、Processes&lt;/td&gt;
+          &lt;td&gt;server-status?auto機能(自作スクリプト利用)&lt;/td&gt;
+      &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;各指標の収集手段、指標の意味は以下の通りです。&lt;/p&gt;
+&lt;table&gt;
+  &lt;thead&gt;
+      &lt;tr&gt;
+          &lt;th&gt;指標&lt;/th&gt;
+          &lt;th&gt;収集手段&lt;/th&gt;
+          &lt;th&gt;説明&lt;/th&gt;
+      &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+      &lt;tr&gt;
+          &lt;td&gt;CPU Avg&lt;/td&gt;
+          &lt;td&gt;mpstatコマンド(自作スクリプト)&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;Average&lt;/td&gt;
+          &lt;td&gt;Aggregate Report出力&lt;/td&gt;
+          &lt;td&gt;平均応答時間(ms)&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;Median&lt;/td&gt;
+          &lt;td&gt;Aggregate Report出力&lt;/td&gt;
+          &lt;td&gt;応答時間中央値(ms)&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;90% Line&lt;/td&gt;
+          &lt;td&gt;Aggregate Report出力&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;95% Line&lt;/td&gt;
+          &lt;td&gt;Aggregate Report出力&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;99% Line&lt;/td&gt;
+          &lt;td&gt;Aggregate Report出力&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;Max&lt;/td&gt;
+          &lt;td&gt;Aggregate Report出力&lt;/td&gt;
+          &lt;td&gt;最大応答時間(ms)&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;Error %&lt;/td&gt;
+          &lt;td&gt;Aggregate Report出力&lt;/td&gt;
+          &lt;td&gt;リクエストの失敗率&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;Throughput&lt;/td&gt;
+          &lt;td&gt;Aggregate Report出力&lt;/td&gt;
+          &lt;td&gt;秒間リクエスト数&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;BusyWorkers Avg&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;IdleWorkers Avg&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;Processes Avg&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;Context Switch&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;Run Queue&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+      &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h2&gt;6. 測定結果&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;6-測定結果&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#6-%e6%b8%ac%e5%ae%9a%e7%b5%90%e6%9e%9c&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h2&gt;&lt;table&gt;
+  &lt;thead&gt;
+      &lt;tr&gt;
+          &lt;th&gt;Test&lt;/th&gt;
+          &lt;th&gt;Users&lt;/th&gt;
+          &lt;th&gt;CPU Avg&lt;/th&gt;
+          &lt;th&gt;Average&lt;/th&gt;
+          &lt;th&gt;Median&lt;/th&gt;
+          &lt;th&gt;90% Line&lt;/th&gt;
+          &lt;th&gt;95% Line&lt;/th&gt;
+          &lt;th&gt;99% Line&lt;/th&gt;
+          &lt;th&gt;Max&lt;/th&gt;
+          &lt;th&gt;Error%&lt;/th&gt;
+          &lt;th&gt;Throughput&lt;/th&gt;
+          &lt;th&gt;BusyWorkers Avg&lt;/th&gt;
+          &lt;th&gt;IdleWorkers Avg&lt;/th&gt;
+          &lt;th&gt;Processes Avg&lt;/th&gt;
+          &lt;th&gt;Context Switch&lt;/th&gt;
+          &lt;th&gt;Run Queue&lt;/th&gt;
+      &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+      &lt;tr&gt;
+          &lt;td&gt;#1&lt;/td&gt;
+          &lt;td&gt;5&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;#2&lt;/td&gt;
+          &lt;td&gt;10&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;#3&lt;/td&gt;
+          &lt;td&gt;15&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;#4&lt;/td&gt;
+          &lt;td&gt;20&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;#5&lt;/td&gt;
+          &lt;td&gt;25&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;#6&lt;/td&gt;
+          &lt;td&gt;30&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;：&lt;/td&gt;
+          &lt;td&gt;：&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+      &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h2&gt;7. 考察&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;7-考察&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#7-%e8%80%83%e5%af%9f&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h2&gt;&lt;pre&gt;&lt;code&gt;                    Apache Throughputのボトルネックを調査
+                               │
+             ┌─────────────────┴─────────────────┐
+             │                                   │
+      仮説① CPU使用率が原因               仮説② Apache Worker数が原因
+             │                                   │
+             │                                   │
+     CPU Utilizationを計測             BusyWorkers / IdleWorkersを計測
+             │                                   │
+             └─────────────────┬─────────────────┘
+                               │
+                     十分な相関は確認できず
+                               │
+                               ▼
+               仮説③ CPU Resource Contentionが原因
+                               │
+          ┌────────────────────┴────────────────────┐
+          │                                         │
+  Context Switchを計測                    Run Queueを計測
+          │                                         │
+          └────────────────────┬────────────────────┘
+                               │
+                               ▼
+              Throughputが頭打ちになる時点で
+         Context Switch・Run Queueが急増することを確認
+                               │
+                               ▼
+                CPU SchedulerによるResource Contentionが
+              Throughput制限の主要因であることを検証
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h2&gt;8. まとめ&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;8-まとめ&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#8-%e3%81%be%e3%81%a8%e3%82%81&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;今回の検証では、&lt;/p&gt;
+&lt;p&gt;①&lt;/p&gt;
+&lt;p&gt;CPU使用率だけでは性能限界を説明できなかった。&lt;/p&gt;
+&lt;p&gt;②&lt;/p&gt;
+&lt;p&gt;Apache Worker数も限界ではなかった。&lt;/p&gt;
+&lt;p&gt;③&lt;/p&gt;
+&lt;p&gt;Linux SchedulerによるCPU Resource Contentionが
+Throughputを制限していたと考えられる。&lt;/p&gt;
+      </description>
+    </item>
     
   </channel>
 </rss>

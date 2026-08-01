@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr"><head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="robots" content="noindex, nofollow" />
+  <link rel="icon shortcut" href="/favicon.ico" sizes="32x32" />
+<link rel="icon" href="/favicon.svg" type="image/svg+xml" id="favicon-svg" />
+<link rel="icon" href="/favicon-16x16.png" type="image/png" sizes="16x16" />
+<link rel="icon" href="/favicon-32x32.png" type="image/png" sizes="32x32" />
+<link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180" />
+<link fetchpriority="low" href="/site.webmanifest" rel="manifest" />
+<title>Project#01【性能調査】Apache HTTPサーバにおいて、Throughputを制限する要因は何か – SoTech</title>
+  <meta name="description" content=" Apache＋JMeter＋自作リソースログ収集スクリプトを用いて、CPU使用率、Apache Worker数、Linuxスケジューラの観点から検証し、調査結果を本記事にまとめてみました。" /><link rel="canonical" href="//localhost:1313/blog/sideprojects/apache-throughput-monitoring/" itemprop="url" />
+
+<meta property="og:title" content="Project#01【性能調査】Apache HTTPサーバにおいて、Throughputを制限する要因は何か">
+<meta
+  property="og:description"
+  content="
+    
+      
+Apache＋JMeter＋自作リソースログ収集スクリプトを用いて、CPU使用率、Apache Worker数、Linuxスケジューラの観点から検証し、調査結果を本記事にまとめてみました。
+    
+  ">
+<meta
+  property="og:type"
+  content="
+    article
+  ">
+<meta property="og:url" content="//localhost:1313/blog/sideprojects/apache-throughput-monitoring/"><meta property="article:section" content="blog">
+
+<meta
+  property="article:published_time"
+  content="2026-07-19T09:00:00+09:00">
+
+
+<meta
+  property="article:modified_time"
+  content="2026-07-19T09:00:00+09:00">
+
+
+
+  <meta itemprop="name" content="Project#01【性能調査】Apache HTTPサーバにおいて、Throughputを制限する要因は何か">
+  <meta itemprop="description" content="Apache＋JMeter＋自作リソースログ収集スクリプトを用いて、CPU使用率、Apache Worker数、Linuxスケジューラの観点から検証し、調査結果を本記事にまとめてみました。">
+  <meta itemprop="datePublished" content="2026-07-19T09:00:00+09:00">
+  <meta itemprop="dateModified" content="2026-07-19T09:00:00+09:00">
+  <meta itemprop="wordCount" content="322">
+  <meta itemprop="keywords" content="Apache,Linux,JMeter">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Project#01【性能調査】Apache HTTPサーバにおいて、Throughputを制限する要因は何か">
+  <meta name="twitter:description" content="Apache＋JMeter＋自作リソースログ収集スクリプトを用いて、CPU使用率、Apache Worker数、Linuxスケジューラの観点から検証し、調査結果を本記事にまとめてみました。">
+<link href="/css/compiled/main.css" rel="stylesheet" />
+    <link href="/css/variables.css" rel="stylesheet" />
+    <link href="/css/custom.css" rel="stylesheet" />
+
+  
+<script src="/js/main-head.js" integrity=""></script>
+
+  
+  
+  </head>
+<body>
+    <a href="#content" class="hx:sr-only hx:focus-visible:not-sr-only hx:focus-visible:fixed hx:focus-visible:z-50 hx:focus-visible:top-2 hx:focus-visible:left-2 hx:focus-visible:bg-primary-500 hx:focus-visible:text-white hx:focus-visible:px-4 hx:focus-visible:py-2 hx:focus-visible:rounded-md hx:focus-visible:text-sm hx:focus-visible:font-medium">Skip to content</a><div class="hextra-nav-container hx:sticky hx:top-0 hx:z-20 hx:w-full hx:bg-transparent hx:print:hidden">
+  <div
+    class="hextra-nav-container-blur hx:pointer-events-none hx:absolute hx:z-[-1] hx:h-full hx:w-full hx:bg-white hx:dark:bg-dark hx:shadow-[0_2px_4px_rgba(0,0,0,.02),0_1px_0_rgba(0,0,0,.06)] hx:contrast-more:shadow-[0_0_0_1px_#000] hx:dark:shadow-[0_-1px_0_rgba(255,255,255,.1)_inset] hx:contrast-more:dark:shadow-[0_0_0_1px_#fff]"
+  ></div>
+
+  <nav class="hextra-max-navbar-width hx:mx-auto hx:flex hx:items-center hx:justify-end hx:gap-2 hx:h-16 hx:px-6">
+    <a class="hx:flex hx:items-center hx:hover:opacity-75 hx:ltr:mr-auto hx:rtl:ml-auto" href="/">
+    <img class="hx:mr-2 hx:block hx:dark:hidden" src="/images/logo.svg" alt="Logo" height="20" width="20" />
+    <img class="hx:mr-2 hx:hidden hx:dark:block" src="/images/logo.svg" alt="Dark Logo" height="20" width="20" />
+    <span class="hx:mr-2 hx:font-extrabold hx:inline hx:select-none">SoTech</span>
+</a>
+<a
+  title=""
+  href="/aboutme"
+  
+  class="hx:text-sm hx:contrast-more:text-gray-700 hx:contrast-more:dark:text-gray-100 hx:relative hx:-ml-2 hx:hidden hx:whitespace-nowrap hx:p-2 hx:md:inline-flex hx:items-center hx:gap-1 hx:text-gray-600 hx:hover:text-gray-800 hx:dark:text-gray-400 hx:dark:hover:text-gray-200"
+><span class="hx:text-center">About Me</span>
+</a><div class="hx:relative hx:hidden hx:md:inline-block">
+  <button
+    title="Blog"
+    data-state="closed"
+    class="hextra-nav-menu-toggle hx:cursor-pointer hx:text-sm hx:contrast-more:text-gray-700 hx:contrast-more:dark:text-gray-100 hx:relative hx:-ml-2 hx:whitespace-nowrap hx:p-2 hx:flex hx:items-center hx:gap-1 hx:font-medium"
+    type="button"
+    aria-label="Blog"
+    aria-expanded="false"
+    aria-haspopup="menu"
+  ><span class="hx:text-center">Blog</span><svg height=12 class="hx:transition-transform hx:duration-200 hx:ease-in-out" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg></button>
+  <ul
+    class="hextra-nav-menu-items hx:hidden hx:z-20 hx:max-h-64 hx:overflow-auto hx:rounded-lg hx:border hx:border-gray-200 hx:bg-white hx:p-1 hx:text-sm hx:shadow-lg hx:dark:border-neutral-700 hx:dark:bg-neutral-900"
+    style="min-width: 100px;"
+    role="menu"
+  >
+    <li role="none" class="hextra-nav-menu-item hx:flex hx:flex-col">
+      <a
+        href="/blog/sideprojects"
+        
+        role="menuitem"
+        class="hx:text-gray-600 hx:hover:text-gray-800 hx:dark:text-gray-400 hx:dark:hover:text-gray-200 hx:relative hx:cursor-pointer hx:whitespace-nowrap hx:rounded-sm hx:py-1.5 hx:transition-colors hx:ltr:pl-3 hx:ltr:pr-9 hx:rtl:pr-3 hx:rtl:pl-9 hx:flex hx:items-center hx:gap-1 hx:hover:bg-gray-100 hx:dark:hover:bg-neutral-800"
+      >Side Projects</a>
+    </li><li role="none" class="hextra-nav-menu-item hx:flex hx:flex-col">
+      <a
+        href="/blog/technotes"
+        
+        role="menuitem"
+        class="hx:text-gray-600 hx:hover:text-gray-800 hx:dark:text-gray-400 hx:dark:hover:text-gray-200 hx:relative hx:cursor-pointer hx:whitespace-nowrap hx:rounded-sm hx:py-1.5 hx:transition-colors hx:ltr:pl-3 hx:ltr:pr-9 hx:rtl:pr-3 hx:rtl:pl-9 hx:flex hx:items-center hx:gap-1 hx:hover:bg-gray-100 hx:dark:hover:bg-neutral-800"
+      >Tech Notes</a>
+    </li></ul>
+</div><div class="hx:relative hx:hidden hx:md:inline-block">
+  <button
+    title="Tags"
+    data-state="closed"
+    class="hextra-nav-menu-toggle hx:cursor-pointer hx:text-sm hx:contrast-more:text-gray-700 hx:contrast-more:dark:text-gray-100 hx:relative hx:-ml-2 hx:whitespace-nowrap hx:p-2 hx:flex hx:items-center hx:gap-1 hx:text-gray-600 hx:hover:text-gray-800 hx:dark:text-gray-400 hx:dark:hover:text-gray-200"
+    type="button"
+    aria-label="Tags"
+    aria-expanded="false"
+    aria-haspopup="menu"
+  ><span class="hx:text-center">Tags</span><svg height=12 class="hx:transition-transform hx:duration-200 hx:ease-in-out" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg></button>
+  <ul
+    class="hextra-nav-menu-items hx:hidden hx:z-20 hx:max-h-64 hx:overflow-auto hx:rounded-lg hx:border hx:border-gray-200 hx:bg-white hx:p-1 hx:text-sm hx:shadow-lg hx:dark:border-neutral-700 hx:dark:bg-neutral-900"
+    style="min-width: 100px;"
+    role="menu"
+  >
+    <li role="none" class="hextra-nav-menu-item hx:flex hx:flex-col">
+      <a
+        href="/tags/vmware/"
+        
+        role="menuitem"
+        class="hx:text-gray-600 hx:hover:text-gray-800 hx:dark:text-gray-400 hx:dark:hover:text-gray-200 hx:relative hx:cursor-pointer hx:whitespace-nowrap hx:rounded-sm hx:py-1.5 hx:transition-colors hx:ltr:pl-3 hx:ltr:pr-9 hx:rtl:pr-3 hx:rtl:pl-9 hx:flex hx:items-center hx:gap-1 hx:hover:bg-gray-100 hx:dark:hover:bg-neutral-800"
+      >VMWare</a>
+    </li></ul>
+</div><div class="hextra-search-wrapper hx:relative hx:md:w-64">
+  <div class="hx:relative hx:flex hx:items-center hx:text-gray-900 hx:contrast-more:text-gray-800 hx:dark:text-gray-300 hx:contrast-more:dark:text-gray-300">
+    <input
+      placeholder="Search..."
+      aria-label="Search..."
+      class="hextra-search-input hx:hextra-focus-visible hx:block hx:w-full hx:appearance-none hx:rounded-lg hx:px-3 hx:py-2 hx:transition-colors hx:text-base hx:leading-tight hx:md:text-sm hx:bg-black/[.05] hx:dark:bg-gray-50/10 hx:focus-visible:bg-white hx:dark:focus-visible:bg-dark hx:placeholder:text-gray-500 hx:dark:placeholder:text-gray-400 hx:contrast-more:border hx:contrast-more:border-current"
+      type="search"
+      autocomplete="off"
+      value=""
+      spellcheck="false"
+    />
+    <kbd
+      class="hx:absolute hx:my-1.5 hx:select-none hx:ltr:right-1.5 hx:rtl:left-1.5 hx:h-5 hx:rounded-sm hx:bg-white hx:px-1.5 hx:font-mono hx:text-[10px] hx:font-medium hx:text-gray-500 hx:border hx:border-gray-200 hx:dark:border-gray-100/20 hx:dark:bg-dark/50 hx:contrast-more:border-current hx:contrast-more:text-current hx:contrast-more:dark:border-current hx:items-center hx:gap-1 hx:transition-opacity hx:pointer-events-none hx:hidden hx:sm:flex"
+    >
+      CTRL K
+    </kbd>
+  </div>
+
+  <div>
+    <ul
+      class="hextra-search-results hextra-scrollbar hx:hidden hx:border hx:border-gray-200 hx:bg-white hx:text-gray-100 hx:dark:border-neutral-800 hx:dark:bg-neutral-900 hx:absolute hx:top-full hx:z-20 hx:mt-2 hx:overflow-auto hx:overscroll-contain hx:rounded-xl hx:py-2.5 hx:shadow-xl hx:max-h-[min(calc(50vh-11rem-env(safe-area-inset-bottom)),400px)] hx:md:max-h-[min(calc(100vh-5rem-env(safe-area-inset-bottom)),400px)] hx:inset-x-0 hx:ltr:md:left-auto hx:rtl:md:right-auto hx:contrast-more:border hx:contrast-more:border-gray-900 hx:contrast-more:dark:border-gray-50 hx:w-screen hx:min-h-[100px] hx:max-w-[min(calc(100vw-2rem),calc(100%+20rem))]"
+      aria-label="Search results"
+      style="transition: max-height 0.2s ease 0s;"
+    ></ul>
+    <div class="hextra-search-status hx:sr-only" aria-live="polite" role="status"></div>
+  </div>
+</div>
+
+          <a class="hx:p-2 hx:text-current" target="_blank" rel="noreferrer" href="https://github.com/YukunTseng/YukunTseng.github.io" title="GitHub"><svg height=24 fill="currentColor" viewBox="3 3 18 18">
+  <path d="M12 3C7.0275 3 3 7.12937 3 12.2276C3 16.3109 5.57625 19.7597 9.15374 20.9824C9.60374 21.0631 9.77249 20.7863 9.77249 20.5441C9.77249 20.3249 9.76125 19.5982 9.76125 18.8254C7.5 19.2522 6.915 18.2602 6.735 17.7412C6.63375 17.4759 6.19499 16.6569 5.8125 16.4378C5.4975 16.2647 5.0475 15.838 5.80124 15.8264C6.51 15.8149 7.01625 16.4954 7.18499 16.7723C7.99499 18.1679 9.28875 17.7758 9.80625 17.5335C9.885 16.9337 10.1212 16.53 10.38 16.2993C8.3775 16.0687 6.285 15.2728 6.285 11.7432C6.285 10.7397 6.63375 9.9092 7.20749 9.26326C7.1175 9.03257 6.8025 8.08674 7.2975 6.81794C7.2975 6.81794 8.05125 6.57571 9.77249 7.76377C10.4925 7.55615 11.2575 7.45234 12.0225 7.45234C12.7875 7.45234 13.5525 7.55615 14.2725 7.76377C15.9937 6.56418 16.7475 6.81794 16.7475 6.81794C17.2424 8.08674 16.9275 9.03257 16.8375 9.26326C17.4113 9.9092 17.76 10.7281 17.76 11.7432C17.76 15.2843 15.6563 16.0687 13.6537 16.2993C13.98 16.5877 14.2613 17.1414 14.2613 18.0065C14.2613 19.2407 14.25 20.2326 14.25 20.5441C14.25 20.7863 14.4188 21.0746 14.8688 20.9824C16.6554 20.364 18.2079 19.1866 19.3078 17.6162C20.4077 16.0457 20.9995 14.1611 21 12.2276C21 7.12937 16.9725 3 12 3Z"></path>
+</svg>
+<span class="hx:sr-only">GitHub</span>
+          </a><button type="button" aria-label="Menu" aria-expanded="false" class="hextra-hamburger-menu hx:cursor-pointer hx:-mr-2 hx:rounded-sm hx:p-2 hx:active:bg-gray-400/20 hx:md:hidden hx:hextra-focus-visible-inset"><svg height=24 fill="none" viewBox="0 0 24 24" stroke="currentColor"><g><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8H20"></path></g><g><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16H20"></path></g></svg></button>
+  </nav>
+</div>
+
+  <div class="hx:mx-auto hx:flex hextra-max-page-width">
+    <aside class="hextra-sidebar-container hx:flex hx:flex-col hx:print:hidden hx:md:top-16 hx:md:shrink-0 hx:md:w-64 hx:md:self-start hx:max-md:[transform:translate3d(0,-100%,0)] hx:md:hidden hx:xl:block">
+    <div class="hx:px-4 hx:pt-4 hx:md:hidden">
+      <div class="hextra-search-wrapper hx:relative hx:md:w-64">
+  <div class="hx:relative hx:flex hx:items-center hx:text-gray-900 hx:contrast-more:text-gray-800 hx:dark:text-gray-300 hx:contrast-more:dark:text-gray-300">
+    <input
+      placeholder="Search..."
+      aria-label="Search..."
+      class="hextra-search-input hx:hextra-focus-visible hx:block hx:w-full hx:appearance-none hx:rounded-lg hx:px-3 hx:py-2 hx:transition-colors hx:text-base hx:leading-tight hx:md:text-sm hx:bg-black/[.05] hx:dark:bg-gray-50/10 hx:focus-visible:bg-white hx:dark:focus-visible:bg-dark hx:placeholder:text-gray-500 hx:dark:placeholder:text-gray-400 hx:contrast-more:border hx:contrast-more:border-current"
+      type="search"
+      autocomplete="off"
+      value=""
+      spellcheck="false"
+    />
+    <kbd
+      class="hx:absolute hx:my-1.5 hx:select-none hx:ltr:right-1.5 hx:rtl:left-1.5 hx:h-5 hx:rounded-sm hx:bg-white hx:px-1.5 hx:font-mono hx:text-[10px] hx:font-medium hx:text-gray-500 hx:border hx:border-gray-200 hx:dark:border-gray-100/20 hx:dark:bg-dark/50 hx:contrast-more:border-current hx:contrast-more:text-current hx:contrast-more:dark:border-current hx:items-center hx:gap-1 hx:transition-opacity hx:pointer-events-none hx:hidden hx:sm:flex"
+    >
+      CTRL K
+    </kbd>
+  </div>
+
+  <div>
+    <ul
+      class="hextra-search-results hextra-scrollbar hx:hidden hx:border hx:border-gray-200 hx:bg-white hx:text-gray-100 hx:dark:border-neutral-800 hx:dark:bg-neutral-900 hx:absolute hx:top-full hx:z-20 hx:mt-2 hx:overflow-auto hx:overscroll-contain hx:rounded-xl hx:py-2.5 hx:shadow-xl hx:max-h-[min(calc(50vh-11rem-env(safe-area-inset-bottom)),400px)] hx:md:max-h-[min(calc(100vh-5rem-env(safe-area-inset-bottom)),400px)] hx:inset-x-0 hx:ltr:md:left-auto hx:rtl:md:right-auto hx:contrast-more:border hx:contrast-more:border-gray-900 hx:contrast-more:dark:border-gray-50 hx:w-screen hx:min-h-[100px] hx:max-w-[min(calc(100vw-2rem),calc(100%+20rem))]"
+      aria-label="Search results"
+      style="transition: max-height 0.2s ease 0s;"
+    ></ul>
+    <div class="hextra-search-status hx:sr-only" aria-live="polite" role="status"></div>
+  </div>
+</div>
+
+    </div><div class="hextra-scrollbar hx:overflow-y-auto hx:overflow-x-hidden hx:p-4 hx:grow hx:md:h-[calc(100vh-var(--navbar-height)-var(--menu-height))]">
+    <ul class="hx:flex hx:flex-col hx:gap-1 hx:md:hidden">
+      
+      <li class="open">
+              <div class="hextra-sidebar-item hx:group hx:relative hx:flex hx:items-center">
+                <span class="hx:flex hx:grow hx:cursor-default hx:px-2 hx:py-1.5 hx:text-sm hx:font-semibold hx:text-gray-900 hx:dark:text-gray-100">Blog</span>
+              </div>
+              <div class="hextra-sidebar-children hx:ltr:pr-0 hx:rtl:pl-0 hx:overflow-hidden">
+                <ul class='hx:relative hx:flex hx:flex-col hx:gap-1 hx:before:absolute hx:before:inset-y-1 hx:before:w-px hx:before:bg-gray-200 hx:before:content-[""] hx:ltr:ml-3 hx:ltr:pl-3 hx:ltr:before:left-0 hx:rtl:mr-3 hx:rtl:pr-3 hx:rtl:before:right-0 hx:dark:before:bg-neutral-800'><li class="hx:flex hx:flex-col"><div class="hextra-sidebar-item hx:group hx:relative hx:flex hx:items-center" data-active="false">
+    <a
+      class="hx:flex hx:items-center hx:justify-between hx:gap-2 hx:grow hx:cursor-pointer hx:rounded-sm hx:px-2 hx:py-1.5 hx:text-sm hx:transition-colors [-webkit-tap-highlight-color:transparent] [-webkit-touch-callout:none] hx:hextra-focus-visible-inset hx:text-gray-500 hx:hover:bg-gray-100 hx:hover:text-gray-900 hx:contrast-more:border hx:contrast-more:border-transparent hx:contrast-more:text-gray-900 hx:contrast-more:hover:border-gray-900 hx:dark:text-neutral-400 hx:dark:hover:bg-primary-100/5 hx:dark:hover:text-gray-50 hx:contrast-more:dark:text-gray-50 hx:contrast-more:dark:hover:border-gray-50"
+      href="/blog/sideprojects/"
+      
+    >
+      <span class="hx:min-w-0 [word-break:break-word]">Side Projects</span>
+    </a>
+  </div></li><li class="hx:flex hx:flex-col"><div class="hextra-sidebar-item hx:group hx:relative hx:flex hx:items-center" data-active="false">
+    <a
+      class="hx:flex hx:items-center hx:justify-between hx:gap-2 hx:grow hx:cursor-pointer hx:rounded-sm hx:px-2 hx:py-1.5 hx:text-sm hx:transition-colors [-webkit-tap-highlight-color:transparent] [-webkit-touch-callout:none] hx:hextra-focus-visible-inset hx:text-gray-500 hx:hover:bg-gray-100 hx:hover:text-gray-900 hx:contrast-more:border hx:contrast-more:border-transparent hx:contrast-more:text-gray-900 hx:contrast-more:hover:border-gray-900 hx:dark:text-neutral-400 hx:dark:hover:bg-primary-100/5 hx:dark:hover:text-gray-50 hx:contrast-more:dark:text-gray-50 hx:contrast-more:dark:hover:border-gray-50"
+      href="/blog/technotes/"
+      
+    >
+      <span class="hx:min-w-0 [word-break:break-word]">Tech Notes</span>
+    </a>
+  </div></li></ul>
+              </div>
+            </li><li class="open">
+              <div class="hextra-sidebar-item hx:group hx:relative hx:flex hx:items-center">
+                <span class="hx:flex hx:grow hx:cursor-default hx:px-2 hx:py-1.5 hx:text-sm hx:font-semibold hx:text-gray-900 hx:dark:text-gray-100">Tags</span>
+              </div>
+              <div class="hextra-sidebar-children hx:ltr:pr-0 hx:rtl:pl-0 hx:overflow-hidden">
+                <ul class='hx:relative hx:flex hx:flex-col hx:gap-1 hx:before:absolute hx:before:inset-y-1 hx:before:w-px hx:before:bg-gray-200 hx:before:content-[""] hx:ltr:ml-3 hx:ltr:pl-3 hx:ltr:before:left-0 hx:rtl:mr-3 hx:rtl:pr-3 hx:rtl:before:right-0 hx:dark:before:bg-neutral-800'><li class="hx:flex hx:flex-col"><div class="hextra-sidebar-item hx:group hx:relative hx:flex hx:items-center" data-active="false">
+    <a
+      class="hx:flex hx:items-center hx:justify-between hx:gap-2 hx:grow hx:cursor-pointer hx:rounded-sm hx:px-2 hx:py-1.5 hx:text-sm hx:transition-colors [-webkit-tap-highlight-color:transparent] [-webkit-touch-callout:none] hx:hextra-focus-visible-inset hx:text-gray-500 hx:hover:bg-gray-100 hx:hover:text-gray-900 hx:contrast-more:border hx:contrast-more:border-transparent hx:contrast-more:text-gray-900 hx:contrast-more:hover:border-gray-900 hx:dark:text-neutral-400 hx:dark:hover:bg-primary-100/5 hx:dark:hover:text-gray-50 hx:contrast-more:dark:text-gray-50 hx:contrast-more:dark:hover:border-gray-50"
+      href="/tags/vmware/"
+      
+    >
+      <span class="hx:min-w-0 [word-break:break-word]">VMWare</span>
+    </a>
+  </div></li></ul>
+              </div>
+            </li>
+    </ul>
+
+    <div class="hx:max-xl:hidden hx:h-0 hx:w-64 hx:shrink-0"></div></div>
+  
+  </aside>
+    
+<nav class="hextra-toc hx:order-last hx:hidden hx:w-64 hx:shrink-0 hx:xl:block hx:print:hidden hx:px-4" aria-label="Table of contents">
+    <div class="hextra-scrollbar hx:sticky hx:top-16 hx:overflow-y-auto hx:pr-4 hx:pt-6 hx:text-sm [hyphens:auto] hx:max-h-[calc(100vh-var(--navbar-height)-env(safe-area-inset-bottom))] hx:ltr:-mr-4 hx:rtl:-ml-4"><p class="hx:mb-4 hx:font-semibold hx:tracking-tight">On this page</p><ul>
+      <li class="hx:my-2 hx:scroll-my-6 hx:scroll-py-6">
+        <a class="hx:font-medium hx:inline-block hx:rounded-sm hx:text-gray-500 hx:hover:text-gray-900 hx:dark:text-gray-400 hx:dark:hover:text-gray-300 hx:contrast-more:text-gray-900 hx:contrast-more:underline hx:contrast-more:dark:text-gray-50 hx:w-full hx:wrap-break-word hx:hextra-focus-visible-inset" href="#1-%e3%81%af%e3%81%98%e3%82%81%e3%81%ab">1. はじめに
+        </a>
+      </li>
+      <li class="hx:my-2 hx:scroll-my-6 hx:scroll-py-6">
+        <a class="hx:font-medium hx:inline-block hx:rounded-sm hx:text-gray-500 hx:hover:text-gray-900 hx:dark:text-gray-400 hx:dark:hover:text-gray-300 hx:contrast-more:text-gray-900 hx:contrast-more:underline hx:contrast-more:dark:text-gray-50 hx:w-full hx:wrap-break-word hx:hextra-focus-visible-inset" href="#2-%e6%a4%9c%e8%a8%bc%e7%9b%ae%e7%9a%84">2. 検証目的
+        </a>
+      </li>
+      <li class="hx:my-2 hx:scroll-my-6 hx:scroll-py-6">
+        <a class="hx:font-medium hx:inline-block hx:rounded-sm hx:text-gray-500 hx:hover:text-gray-900 hx:dark:text-gray-400 hx:dark:hover:text-gray-300 hx:contrast-more:text-gray-900 hx:contrast-more:underline hx:contrast-more:dark:text-gray-50 hx:w-full hx:wrap-break-word hx:hextra-focus-visible-inset" href="#3-%e3%82%b7%e3%82%b9%e3%83%86%e3%83%a0%e6%a7%8b%e6%88%90">3. システム構成
+        </a>
+      </li>
+      <li class="hx:my-2 hx:scroll-my-6 hx:scroll-py-6">
+        <a class="hx:ltr:pl-4 hx:rtl:pr-4 hx:inline-block hx:rounded-sm hx:text-gray-500 hx:hover:text-gray-900 hx:dark:text-gray-400 hx:dark:hover:text-gray-300 hx:contrast-more:text-gray-900 hx:contrast-more:underline hx:contrast-more:dark:text-gray-50 hx:w-full hx:wrap-break-word hx:hextra-focus-visible-inset" href="#31-%e6%a7%8b%e6%88%90%e5%9b%b3">3.1. 構成図
+        </a>
+      </li>
+      <li class="hx:my-2 hx:scroll-my-6 hx:scroll-py-6">
+        <a class="hx:ltr:pl-4 hx:rtl:pr-4 hx:inline-block hx:rounded-sm hx:text-gray-500 hx:hover:text-gray-900 hx:dark:text-gray-400 hx:dark:hover:text-gray-300 hx:contrast-more:text-gray-900 hx:contrast-more:underline hx:contrast-more:dark:text-gray-50 hx:w-full hx:wrap-break-word hx:hextra-focus-visible-inset" href="#32-%e5%b0%8e%e5%85%a5%e3%82%bd%e3%83%95%e3%83%88%e3%82%a6%e3%82%a7%e3%82%a2">3.2. 導入ソフトウェア
+        </a>
+      </li>
+      <li class="hx:my-2 hx:scroll-my-6 hx:scroll-py-6">
+        <a class="hx:font-medium hx:inline-block hx:rounded-sm hx:text-gray-500 hx:hover:text-gray-900 hx:dark:text-gray-400 hx:dark:hover:text-gray-300 hx:contrast-more:text-gray-900 hx:contrast-more:underline hx:contrast-more:dark:text-gray-50 hx:w-full hx:wrap-break-word hx:hextra-focus-visible-inset" href="#4-%e8%b2%a0%e8%8d%b7%e8%a9%a6%e9%a8%93%e6%96%b9%e6%b3%95">4. 負荷試験方法
+        </a>
+      </li>
+      <li class="hx:my-2 hx:scroll-my-6 hx:scroll-py-6">
+        <a class="hx:ltr:pl-4 hx:rtl:pr-4 hx:inline-block hx:rounded-sm hx:text-gray-500 hx:hover:text-gray-900 hx:dark:text-gray-400 hx:dark:hover:text-gray-300 hx:contrast-more:text-gray-900 hx:contrast-more:underline hx:contrast-more:dark:text-gray-50 hx:w-full hx:wrap-break-word hx:hextra-focus-visible-inset" href="#41-jmeter%e8%a8%ad%e5%ae%9a">4.1. JMeter設定
+        </a>
+      </li>
+      <li class="hx:my-2 hx:scroll-my-6 hx:scroll-py-6">
+        <a class="hx:ltr:pl-4 hx:rtl:pr-4 hx:inline-block hx:rounded-sm hx:text-gray-500 hx:hover:text-gray-900 hx:dark:text-gray-400 hx:dark:hover:text-gray-300 hx:contrast-more:text-gray-900 hx:contrast-more:underline hx:contrast-more:dark:text-gray-50 hx:w-full hx:wrap-break-word hx:hextra-focus-visible-inset" href="#42-%e3%83%87%e3%83%bc%e3%82%bf%e5%8f%8e%e9%9b%86%e6%96%b9%e6%b3%95">4.2. データ収集方法
+        </a>
+      </li>
+      <li class="hx:my-2 hx:scroll-my-6 hx:scroll-py-6">
+        <a class="hx:ltr:pl-4 hx:rtl:pr-4 hx:inline-block hx:rounded-sm hx:text-gray-500 hx:hover:text-gray-900 hx:dark:text-gray-400 hx:dark:hover:text-gray-300 hx:contrast-more:text-gray-900 hx:contrast-more:underline hx:contrast-more:dark:text-gray-50 hx:w-full hx:wrap-break-word hx:hextra-focus-visible-inset" href="#43-%e8%b2%a0%e8%8d%b7%e8%a9%a6%e9%a8%93%e7%94%a8php%e3%82%b9%e3%82%af%e3%83%aa%e3%83%97%e3%83%88">4.3. 負荷試験用PHPスクリプト
+        </a>
+      </li>
+      <li class="hx:my-2 hx:scroll-my-6 hx:scroll-py-6">
+        <a class="hx:ltr:pl-4 hx:rtl:pr-4 hx:inline-block hx:rounded-sm hx:text-gray-500 hx:hover:text-gray-900 hx:dark:text-gray-400 hx:dark:hover:text-gray-300 hx:contrast-more:text-gray-900 hx:contrast-more:underline hx:contrast-more:dark:text-gray-50 hx:w-full hx:wrap-break-word hx:hextra-focus-visible-inset" href="#44%e3%83%87%e3%83%bc%e3%82%bf%e3%83%95%e3%83%ad%e3%83%bc">4.4.データフロー
+        </a>
+      </li>
+      <li class="hx:my-2 hx:scroll-my-6 hx:scroll-py-6">
+        <a class="hx:font-medium hx:inline-block hx:rounded-sm hx:text-gray-500 hx:hover:text-gray-900 hx:dark:text-gray-400 hx:dark:hover:text-gray-300 hx:contrast-more:text-gray-900 hx:contrast-more:underline hx:contrast-more:dark:text-gray-50 hx:w-full hx:wrap-break-word hx:hextra-focus-visible-inset" href="#5-%e8%a6%b3%e6%b8%ac%e6%8c%87%e6%a8%99">5. 観測指標
+        </a>
+      </li>
+      <li class="hx:my-2 hx:scroll-my-6 hx:scroll-py-6">
+        <a class="hx:font-medium hx:inline-block hx:rounded-sm hx:text-gray-500 hx:hover:text-gray-900 hx:dark:text-gray-400 hx:dark:hover:text-gray-300 hx:contrast-more:text-gray-900 hx:contrast-more:underline hx:contrast-more:dark:text-gray-50 hx:w-full hx:wrap-break-word hx:hextra-focus-visible-inset" href="#6-%e6%b8%ac%e5%ae%9a%e7%b5%90%e6%9e%9c">6. 測定結果
+        </a>
+      </li>
+      <li class="hx:my-2 hx:scroll-my-6 hx:scroll-py-6">
+        <a class="hx:font-medium hx:inline-block hx:rounded-sm hx:text-gray-500 hx:hover:text-gray-900 hx:dark:text-gray-400 hx:dark:hover:text-gray-300 hx:contrast-more:text-gray-900 hx:contrast-more:underline hx:contrast-more:dark:text-gray-50 hx:w-full hx:wrap-break-word hx:hextra-focus-visible-inset" href="#7-%e8%80%83%e5%af%9f">7. 考察
+        </a>
+      </li>
+      <li class="hx:my-2 hx:scroll-my-6 hx:scroll-py-6">
+        <a class="hx:font-medium hx:inline-block hx:rounded-sm hx:text-gray-500 hx:hover:text-gray-900 hx:dark:text-gray-400 hx:dark:hover:text-gray-300 hx:contrast-more:text-gray-900 hx:contrast-more:underline hx:contrast-more:dark:text-gray-50 hx:w-full hx:wrap-break-word hx:hextra-focus-visible-inset" href="#8-%e3%81%be%e3%81%a8%e3%82%81">8. まとめ
+        </a>
+      </li></ul>
+      <div class="hx:mt-8 hx:border-t hx:bg-white hx:pt-8 hx:shadow-[0_-12px_16px_white] hx:dark:bg-dark hx:dark:shadow-[0_-12px_16px_#111] hx:sticky hx:bottom-0 hx:flex hx:flex-col hx:items-start hx:gap-2 hx:pb-8 hx:border-gray-200 hx:dark:border-neutral-800 hx:contrast-more:border-t hx:contrast-more:border-neutral-400 hx:contrast-more:shadow-none hx:contrast-more:dark:border-neutral-400"><div class="hx:flex hx:items-start hx:gap-x-2 hx:font-medium hx:text-xs">
+            <div class="hx:text-gray-500 hx:dark:text-gray-400 hx:contrast-more:text-gray-800 hx:contrast-more:dark:text-gray-50">Tags</div>
+            <div class="hx:flex hx:flex-wrap hx:gap-y-1">
+              <a class="hx:inline-block hx:whitespace-nowrap hx:mr-2 hx:text-gray-500 hx:hover:text-gray-900 hx:dark:text-gray-400 hx:dark:hover:text-gray-100 hx:contrast-more:text-gray-800 hx:contrast-more:dark:text-gray-50" href="/tags/apache/">#Apache</a><a class="hx:inline-block hx:whitespace-nowrap hx:mr-2 hx:text-gray-500 hx:hover:text-gray-900 hx:dark:text-gray-400 hx:dark:hover:text-gray-100 hx:contrast-more:text-gray-800 hx:contrast-more:dark:text-gray-50" href="/tags/linux/">#Linux</a><a class="hx:inline-block hx:whitespace-nowrap hx:mr-2 hx:text-gray-500 hx:hover:text-gray-900 hx:dark:text-gray-400 hx:dark:hover:text-gray-100 hx:contrast-more:text-gray-800 hx:contrast-more:dark:text-gray-50" href="/tags/jmeter/">#JMeter</a>
+            </div>
+          </div>
+        <button id="backToTop" tabindex="-1" class="hx:cursor-pointer hx:transition-all hx:duration-75 hx:opacity-0 hx:text-xs hx:font-medium hx:text-gray-500 hx:hover:text-gray-900 hx:dark:text-gray-400 hx:dark:hover:text-gray-100 hx:contrast-more:text-gray-800 hx:contrast-more:dark:text-gray-50">
+          <span>Scroll to top</span>
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" focusable="false" class="hx:inline hx:ltr:ml-1 hx:rtl:mr-1 hx:h-3.5 hx:w-3.5 hx:rounded-full hx:border hx:border-gray-500 hx:hover:border-gray-900 hx:dark:border-gray-400 hx:dark:hover:border-gray-100 hx:contrast-more:border-gray-800 hx:contrast-more:dark:border-gray-50">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+
+    <article class="hx:w-full hx:break-words hx:flex hx:min-h-[calc(100vh-var(--navbar-height))] hx:min-w-0 hx:justify-center hx:pb-8 hx:pr-[calc(env(safe-area-inset-right)-1.5rem)]">
+      <main id="content" class="hx:w-full hx:min-w-0 hextra-max-content-width hx:px-6 hx:pt-4 hx:md:px-12">
+        <div class="hx:mt-1.5 hx:flex hx:items-center hx:gap-1 hx:overflow-hidden hx:text-sm hx:text-gray-500 hx:dark:text-gray-400 hx:contrast-more:text-current">
+        <div class="hx:whitespace-nowrap hx:transition-colors hx:min-w-[24px] hx:overflow-hidden hx:text-ellipsis hx:hover:text-gray-900 hx:dark:hover:text-gray-100">
+          <a href="/blog/" class="hx:inline-block hx:rounded-sm hx:hextra-focus-visible-inset">Blog</a>
+        </div><svg class="hx:w-3.5 hx:shrink-0 hx:rtl:-rotate-180" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+        <div class="hx:whitespace-nowrap hx:transition-colors hx:min-w-[24px] hx:overflow-hidden hx:text-ellipsis hx:hover:text-gray-900 hx:dark:hover:text-gray-100">
+          <a href="/blog/sideprojects/" class="hx:inline-block hx:rounded-sm hx:hextra-focus-visible-inset">Side Projects</a>
+        </div><svg class="hx:w-3.5 hx:shrink-0 hx:rtl:-rotate-180" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg><div class="hx:whitespace-nowrap hx:transition-colors hx:font-medium hx:text-gray-700 hx:contrast-more:font-bold hx:contrast-more:text-current hx:dark:text-gray-100 hx:contrast-more:dark:text-current">Project#01【性能調査】Apache HTTPサーバにおいて、Throughputを制限する要因は何か</div>
+  </div>
+
+        
+        <div class="hx:flex hx:flex-col hx:sm:flex-row hx:items-start hx:sm:items-center hx:sm:justify-between hx:gap-4 hx:mt-2">
+          <h1 class="hx:mb-0 hx:text-4xl hx:font-bold hx:tracking-tight hx:text-slate-900 hx:dark:text-slate-100">Project#01【性能調査】Apache HTTPサーバにおいて、Throughputを制限する要因は何か</h1>
+          
+        </div>
+        
+        <div class="hx:mt-4 hx:mb-16 hx:text-gray-500 hx:dark:text-gray-400 hx:text-sm hx:flex hx:items-center hx:flex-wrap hx:gap-y-2"><span class="hx:mr-1">July 19, 2026</span><span class="hx:mx-1">·</span><a
+                  href="https://github.com/YukunTseng" target="_blank"
+                  class="hx:group hx:inline-flex hx:items-center hx:text-current hx:gap-x-1.5 hx:mx-1"
+                  title="Tseng"
+                ><div class="hx:group-hover:underline">Tseng</div>
+                </a></div>
+        <div class="content">
+          <hr>
+<p>Apache＋JMeter＋自作リソースログ収集スクリプトを用いて、CPU使用率、Apache Worker数、Linuxスケジューラの観点から検証し、調査結果を本記事にまとめてみました。</p>
+<hr>
+<p>先に今回の検証結果をお伝えすると、CPU使用率だけではなく、
+LinuxスケジューラによるCPU Resource Contentionも、Throughputを制限する要因であることが確認できました。
+それでは、実際の検証内容と測定結果について説明していきます。</p>
+<h2>1. はじめに<span class="hx:absolute hx:-mt-20" id="1-はじめに"></span>
+    <a href="#1-%e3%81%af%e3%81%98%e3%82%81%e3%81%ab" class="subheading-anchor" aria-label="Permalink for this section"></a></h2><p>Webサーバの性能を評価する際は、CPU使用率だけを見て、「CPUがボトルネック」と判断してしまうケースがあります。
+しかし、本当にCPU使用率だけで性能限界を説明できるのかを判明したいので、
+今回はJMeterと自作リソースログ収集スクリプトを用いて、
+Apache HTTPサーバの性能限界を調査しました。</p>
+<h2>2. 検証目的<span class="hx:absolute hx:-mt-20" id="2-検証目的"></span>
+    <a href="#2-%e6%a4%9c%e8%a8%bc%e7%9b%ae%e7%9a%84" class="subheading-anchor" aria-label="Permalink for this section"></a></h2><p>今回検証したいこと：</p>
+<ul>
+<li>CPU使用率とThroughputの関係</li>
+<li>Apache Worker数の変化</li>
+<li>Response Timeとの関係</li>
+<li>Linuxスケジューラの影響</li>
+</ul>
+<h2>3. システム構成<span class="hx:absolute hx:-mt-20" id="3-システム構成"></span>
+    <a href="#3-%e3%82%b7%e3%82%b9%e3%83%86%e3%83%a0%e6%a7%8b%e6%88%90" class="subheading-anchor" aria-label="Permalink for this section"></a></h2><h3>3.1. 構成図<span class="hx:absolute hx:-mt-20" id="31-構成図"></span>
+    <a href="#31-%e6%a7%8b%e6%88%90%e5%9b%b3" class="subheading-anchor" aria-label="Permalink for this section"></a></h3><p><figure>
+    <img src="/blog/sideprojects/apache-throughput-monitoring/images/%E6%A7%8B%E6%88%90%E5%9B%B3.jpg" title="構成図" alt="構成図"  data-zoomable loading="lazy" />
+    <figcaption>構成図</figcaption>
+  </figure></p>
+<h3>3.2. 導入ソフトウェア<span class="hx:absolute hx:-mt-20" id="32-導入ソフトウェア"></span>
+    <a href="#32-%e5%b0%8e%e5%85%a5%e3%82%bd%e3%83%95%e3%83%88%e3%82%a6%e3%82%a7%e3%82%a2" class="subheading-anchor" aria-label="Permalink for this section"></a></h3><table>
+  <thead>
+      <tr>
+          <th>項目</th>
+          <th>製品</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td>ハイパーバイザー</td>
+          <td>VMware(R) Workstation Pro 26H1</td>
+      </tr>
+      <tr>
+          <td>OS</td>
+          <td>Rocky Linux 10.1</td>
+      </tr>
+      <tr>
+          <td>HTTPサーバ</td>
+          <td>Apache 2.4.63</td>
+      </tr>
+      <tr>
+          <td>ロードツール</td>
+          <td>JMeter 5.6.3</td>
+      </tr>
+      <tr>
+          <td>PHP</td>
+          <td>php-fpm 8.3.31</td>
+      </tr>
+  </tbody>
+</table>
+<h2>4. 負荷試験方法<span class="hx:absolute hx:-mt-20" id="4-負荷試験方法"></span>
+    <a href="#4-%e8%b2%a0%e8%8d%b7%e8%a9%a6%e9%a8%93%e6%96%b9%e6%b3%95" class="subheading-anchor" aria-label="Permalink for this section"></a></h2><p>JMeterを用いて仮想サーバ（ホスト名：MonitorServer）に対し、事前に作成した負荷試験用PHPスクリプトへHTTPリクエストを送信し、負荷試験を実施しました。</p>
+<p>各試験では JMeter ThreadGroupの設定を固定し、Thread数（仮想ユーザ数）のみを段階的に増加させることで、システム負荷の変化がスループットやOSリソースに与える影響を観察しました。</p>
+<p>負荷試験は合計25回実施しています。</p>
+<h3>4.1. JMeter設定<span class="hx:absolute hx:-mt-20" id="41-jmeter設定"></span>
+    <a href="#41-jmeter%e8%a8%ad%e5%ae%9a" class="subheading-anchor" aria-label="Permalink for this section"></a></h3><ul>
+<li>
+<p>各試験で使用したThreadGroupの設定は以下の通りです。</p>
+<table>
+  <thead>
+      <tr>
+          <th>項目</th>
+          <th>設定値</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td>Ramp-up Period</td>
+          <td>10秒</td>
+      </tr>
+      <tr>
+          <td>Loop Count</td>
+          <td>Infinite</td>
+      </tr>
+      <tr>
+          <td>Duration</td>
+          <td>180秒</td>
+      </tr>
+  </tbody>
+</table>
+</li>
+<li>
+<p>メトリクス収集で使用したListenerのオブジェクトは以下の通りです。</p>
+<table>
+  <thead>
+      <tr>
+          <th>項目</th>
+          <th>使用オブジェクト</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td>Listener</td>
+          <td>Aggregate Report</td>
+      </tr>
+  </tbody>
+</table>
+</li>
+</ul>
+<p>また、試験ごとにThread数のみを変更し、それ以外のパラメータはすべて同一条件としました。</p>
+<h3>4.2. データ収集方法<span class="hx:absolute hx:-mt-20" id="42-データ収集方法"></span>
+    <a href="#42-%e3%83%87%e3%83%bc%e3%82%bf%e5%8f%8e%e9%9b%86%e6%96%b9%e6%b3%95" class="subheading-anchor" aria-label="Permalink for this section"></a></h3><p>負荷試験中は、JMeterと自作のデータ収集スクリプトを使用し、スループットやCPU使用率などの各種メトリクスを収集しました。また、システムが定常状態に入った後のデータだけを評価対象とするので、各試験では以下のルールでデータを集計しています。</p>
+<ul>
+<li>集計対象外：試験開始から30秒間（ウォームアップ期間）</li>
+<li>集計対象　：残り150秒間（測定期間）</li>
+</ul>
+<p>測定期間中に集計したデータは平均値を計算し、各試験の代表値として使用しました。</p>
+<h3>4.3. 負荷試験用PHPスクリプト<span class="hx:absolute hx:-mt-20" id="43-負荷試験用phpスクリプト"></span>
+    <a href="#43-%e8%b2%a0%e8%8d%b7%e8%a9%a6%e9%a8%93%e7%94%a8php%e3%82%b9%e3%82%af%e3%83%aa%e3%83%97%e3%83%88" class="subheading-anchor" aria-label="Permalink for this section"></a></h3><p>ApacheとPHP-FPMに対して軽量なCPUワークロードを与えるため、以下のPHPスクリプトを使用しました。</p>
+<div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+
+<div class="hextra-code-filename not-prose" dir="auto">/var/www/html/cpu.php</div><div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-php" data-lang="php"><span style="display:flex;"><span><span style="color:#75715e">##平方根計算と加算処理を繰り返し実行することで、CPU負荷を発生させています
+</span></span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&lt;?</span><span style="color:#a6e22e">php</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>$sum <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">##処理時間は約8msとなるようにループ回数を調整(2500回)
+</span></span></span><span style="display:flex;"><span><span style="color:#66d9ef">for</span>($i<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>;$i<span style="color:#f92672">&lt;</span><span style="color:#ae81ff">2500</span>;$i<span style="color:#f92672">++</span>){
+</span></span><span style="display:flex;"><span>    $sum <span style="color:#f92672">+=</span> <span style="color:#a6e22e">sqrt</span>($i);
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">echo</span> <span style="color:#e6db74">&#34;Done : </span><span style="color:#e6db74">$sum</span><span style="color:#e6db74">&#34;</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">?&gt;</span><span style="color:#960050;background-color:#1e0010">
+</span></span></span></code></pre></div></div><div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-8">
+  <button
+    class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+    title="Copy code"
+    aria-label="Copy code"
+    data-copied-label="Copied!"
+  >
+    <div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"></div>
+<div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"></div>
+  </button>
+</div>
+</div>
+<p>上記スクリプトで1リクエスト当たりの処理時間は、約8msであることが確認できています↓</p>
+<div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+
+<div class="hextra-code-filename not-prose" dir="auto">MonitorServer</div><div><pre><code>[root@MonitorServer ~]# time curl http://localhost/cpu.php
+ Done : 83308.126280442   ←1リクエストの処理結果
+ real 0m0.008s            ←1リクエスト当たり実請求時間に約0.008秒(8ミリ秒)
+ user 0m0.003s
+ sys 0m0.003s</code></pre></div><div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-8">
+  <button
+    class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+    title="Copy code"
+    aria-label="Copy code"
+    data-copied-label="Copied!"
+  >
+    <div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"></div>
+<div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"></div>
+  </button>
+</div>
+</div>
+<h3>4.4.データフロー<span class="hx:absolute hx:-mt-20" id="44データフロー"></span>
+    <a href="#44%e3%83%87%e3%83%bc%e3%82%bf%e3%83%95%e3%83%ad%e3%83%bc" class="subheading-anchor" aria-label="Permalink for this section"></a></h3><p>今回負荷試験のデータフローは以下のイメージです。</p>
+<div role="img" aria-label="Diagram">
+  <pre class="mermaid hx:mt-6">
+    graph LR
+　
+    A[JMeter] --&gt;|HTTPリクエスト| B[Apache]
+    B --&gt;|FastCGI| C[PHP-FPM]
+    C --&gt; D[cpu.php]
+    D --&gt;|CPUワークロード| E[CPUスケジューラ]
+
+    C --&gt;|HTTPレスポンス| B
+    B --&gt;|HTTPレスポンス| A
+  </pre>
+</div><h2>5. 観測指標<span class="hx:absolute hx:-mt-20" id="5-観測指標"></span>
+    <a href="#5-%e8%a6%b3%e6%b8%ac%e6%8c%87%e6%a8%99" class="subheading-anchor" aria-label="Permalink for this section"></a></h2><p>以下3観点から観測したい指標を選定しました。</p>
+<table>
+  <thead>
+      <tr>
+          <th>観点</th>
+          <th>指標</th>
+          <th>収集手段</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td>HTTP性能</td>
+          <td>Throughput、Average、Median、90%、95%、99%、Max、Error%</td>
+          <td>Aggregate Report出力</td>
+      </tr>
+      <tr>
+          <td>CPUリソース</td>
+          <td>CPU Avg、Run Queue、Context Switch</td>
+          <td>vmstat、mpstatコマンド(自作スクリプト利用)</td>
+      </tr>
+      <tr>
+          <td>Apache状態</td>
+          <td>BusyWorkers、IdleWorkers、Processes</td>
+          <td>server-status?auto機能(自作スクリプト利用)</td>
+      </tr>
+  </tbody>
+</table>
+<p>各指標の収集手段、指標の意味は以下の通りです。</p>
+<table>
+  <thead>
+      <tr>
+          <th>指標</th>
+          <th>収集手段</th>
+          <th>説明</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td>CPU Avg</td>
+          <td>mpstatコマンド(自作スクリプト)</td>
+          <td></td>
+      </tr>
+      <tr>
+          <td>Average</td>
+          <td>Aggregate Report出力</td>
+          <td>平均応答時間(ms)</td>
+      </tr>
+      <tr>
+          <td>Median</td>
+          <td>Aggregate Report出力</td>
+          <td>応答時間中央値(ms)</td>
+      </tr>
+      <tr>
+          <td>90% Line</td>
+          <td>Aggregate Report出力</td>
+          <td></td>
+      </tr>
+      <tr>
+          <td>95% Line</td>
+          <td>Aggregate Report出力</td>
+          <td></td>
+      </tr>
+      <tr>
+          <td>99% Line</td>
+          <td>Aggregate Report出力</td>
+          <td></td>
+      </tr>
+      <tr>
+          <td>Max</td>
+          <td>Aggregate Report出力</td>
+          <td>最大応答時間(ms)</td>
+      </tr>
+      <tr>
+          <td>Error %</td>
+          <td>Aggregate Report出力</td>
+          <td>リクエストの失敗率</td>
+      </tr>
+      <tr>
+          <td>Throughput</td>
+          <td>Aggregate Report出力</td>
+          <td>秒間リクエスト数</td>
+      </tr>
+      <tr>
+          <td>BusyWorkers Avg</td>
+          <td></td>
+          <td></td>
+      </tr>
+      <tr>
+          <td>IdleWorkers Avg</td>
+          <td></td>
+          <td></td>
+      </tr>
+      <tr>
+          <td>Processes Avg</td>
+          <td></td>
+          <td></td>
+      </tr>
+      <tr>
+          <td>Context Switch</td>
+          <td></td>
+          <td></td>
+      </tr>
+      <tr>
+          <td>Run Queue</td>
+          <td></td>
+          <td></td>
+      </tr>
+  </tbody>
+</table>
+<h2>6. 測定結果<span class="hx:absolute hx:-mt-20" id="6-測定結果"></span>
+    <a href="#6-%e6%b8%ac%e5%ae%9a%e7%b5%90%e6%9e%9c" class="subheading-anchor" aria-label="Permalink for this section"></a></h2><table>
+  <thead>
+      <tr>
+          <th>Test</th>
+          <th>Users</th>
+          <th>CPU Avg</th>
+          <th>Average</th>
+          <th>Median</th>
+          <th>90% Line</th>
+          <th>95% Line</th>
+          <th>99% Line</th>
+          <th>Max</th>
+          <th>Error%</th>
+          <th>Throughput</th>
+          <th>BusyWorkers Avg</th>
+          <th>IdleWorkers Avg</th>
+          <th>Processes Avg</th>
+          <th>Context Switch</th>
+          <th>Run Queue</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td>#1</td>
+          <td>5</td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+      </tr>
+      <tr>
+          <td>#2</td>
+          <td>10</td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+      </tr>
+      <tr>
+          <td>#3</td>
+          <td>15</td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+      </tr>
+      <tr>
+          <td>#4</td>
+          <td>20</td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+      </tr>
+      <tr>
+          <td>#5</td>
+          <td>25</td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+      </tr>
+      <tr>
+          <td>#6</td>
+          <td>30</td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+      </tr>
+      <tr>
+          <td>：</td>
+          <td>：</td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+      </tr>
+  </tbody>
+</table>
+<h2>7. 考察<span class="hx:absolute hx:-mt-20" id="7-考察"></span>
+    <a href="#7-%e8%80%83%e5%af%9f" class="subheading-anchor" aria-label="Permalink for this section"></a></h2><pre><code>                    Apache Throughputのボトルネックを調査
+                               │
+             ┌─────────────────┴─────────────────┐
+             │                                   │
+      仮説① CPU使用率が原因               仮説② Apache Worker数が原因
+             │                                   │
+             │                                   │
+     CPU Utilizationを計測             BusyWorkers / IdleWorkersを計測
+             │                                   │
+             └─────────────────┬─────────────────┘
+                               │
+                     十分な相関は確認できず
+                               │
+                               ▼
+               仮説③ CPU Resource Contentionが原因
+                               │
+          ┌────────────────────┴────────────────────┐
+          │                                         │
+  Context Switchを計測                    Run Queueを計測
+          │                                         │
+          └────────────────────┬────────────────────┘
+                               │
+                               ▼
+              Throughputが頭打ちになる時点で
+         Context Switch・Run Queueが急増することを確認
+                               │
+                               ▼
+                CPU SchedulerによるResource Contentionが
+              Throughput制限の主要因であることを検証
+</code></pre>
+<h2>8. まとめ<span class="hx:absolute hx:-mt-20" id="8-まとめ"></span>
+    <a href="#8-%e3%81%be%e3%81%a8%e3%82%81" class="subheading-anchor" aria-label="Permalink for this section"></a></h2><p>今回の検証では、</p>
+<p>①</p>
+<p>CPU使用率だけでは性能限界を説明できなかった。</p>
+<p>②</p>
+<p>Apache Worker数も限界ではなかった。</p>
+<p>③</p>
+<p>Linux SchedulerによるCPU Resource Contentionが
+Throughputを制限していたと考えられる。</p>
+        </div><div class="hx:mt-16"></div></main>
+    </article>
+  </div>
+
+      <footer class="hextra-footer hx:bg-gray-100 hx:pb-[env(safe-area-inset-bottom)] hx:dark:bg-neutral-900 hx:print:bg-transparent"><div class="hextra-custom-footer hextra-max-footer-width hx:mx-auto hx:pl-[max(env(safe-area-inset-left),1.5rem)] hx:pr-[max(env(safe-area-inset-right),1.5rem)] hx:text-gray-600 hx:dark:text-gray-400"></div></footer>
+    
+    <script defer src="/js/main.js" integrity=""></script>
+<script defer src="/js/flexsearch.9f5b5908f93ae86f1ecd4b043b799f580c2d1654e703dd9357d568ac41b2547a.js" integrity="sha256-n1tZCPk66G8ezUsEO3mfWAwtFlTnA92TV9VorEGyVHo=" crossorigin="anonymous"></script><script defer src="/en.search.js" integrity=""></script><script defer src="/js/mermaid.2245770fc9856e478b6f813b10634ba6890e33f96cceb451888f0f2302755dcc.js" integrity="sha256-IkV3D8mFbkeLb4E7EGNLpokOM/lszrRRiI8PIwJ1Xcw=" crossorigin="anonymous"></script><script>
+  document.addEventListener("DOMContentLoaded", () => {
+    
+    document.querySelectorAll(".mermaid").forEach((el) => {
+      el.dataset.original = el.innerHTML;
+    });
+
+    const theme = document.documentElement.classList.contains("dark") ? "dark" : "default";
+    mermaid.initialize({ startOnLoad: true, theme: theme });
+
+    let timeout;
+    new MutationObserver(() => {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => {
+        const theme = document.documentElement.classList.contains("dark") ? "dark" : "default";
+        document.querySelectorAll(".mermaid").forEach((el) => {
+          
+          el.innerHTML = el.dataset.original;
+          el.removeAttribute("data-processed");
+        });
+        mermaid.initialize({ startOnLoad: true, theme: theme });
+        mermaid.init();
+      }, 150);
+    }).observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+  });
+</script>
+<script defer src="/js/medium-zoom.600f3d306436e64441fb815e11be6d6a3f74149a227bc63fb5f5954da0d075c2.js" integrity="sha256-YA89MGQ25kRB&#43;4FeEb5taj90FJoie8Y/tfWVTaDQdcI=" crossorigin="anonymous"></script><script>
+  document.addEventListener("DOMContentLoaded", () => {
+    if (!window.mediumZoom) {
+      return;
+    }
+
+    const getOverlay = () => {
+      return document.documentElement.classList.contains("dark")
+        ? "rgba(17, 17, 17, 0.98)"
+        : "rgba(255, 255, 255, 0.98)";
+    };
+
+    const zoom = window.mediumZoom("[data-zoomable]", {
+      background: getOverlay(),
+    });
+
+    const style = document.createElement("style");
+    style.textContent = `
+      .medium-zoom-overlay {
+        z-index: 1000;
+      }
+      .medium-zoom-image--opened {
+        z-index: 1001;
+      }
+    `;
+    document.head.appendChild(style);
+
+    new MutationObserver(() => {
+      zoom.update({ background: getOverlay() });
+    }).observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+  });
+</script>
+
+  </body>
+</html>

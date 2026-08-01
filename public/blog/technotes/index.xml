@@ -1,8 +1,8 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Infrastructure Engineer - Yukun Tseng – Technotes</title>
+    <title>SoTech – Technotes</title>
     <link>//localhost:1313/blog/technotes/</link>
-    <description>Recent content in Technotes on Infrastructure Engineer - Yukun Tseng</description>
+    <description>Recent content in Technotes on SoTech</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <lastBuildDate>Sat, 23 May 2026 16:32:02 +0900</lastBuildDate>
@@ -16,7 +16,7 @@
     
     
     <item>
-      <title>【Hypervisor】安裝「VMware Workstation Pro」並簡單建置VM</title>
+      <title>【構築手順】安裝「VMware Workstation Pro」並簡單建置VM</title>
       <link>//localhost:1313/blog/technotes/vmware-workstation-pro/</link>
       <pubDate>Tue, 12 May 2026 16:30:29 +0900</pubDate>
       
@@ -35,7 +35,7 @@
 
 &lt;/blockquote&gt;
 &lt;p&gt;VMware官方於2024年11月宣布旗下虛擬化桌面軟體「Workstation 」與「Fusion」正式開放免費使用。&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/4427513/d79882df-77a6-4c8d-8475-12a4115194db.png&#34; alt=&#34;圖片.png&#34;  loading=&#34;lazy&#34; /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/4427513/d79882df-77a6-4c8d-8475-12a4115194db.png&#34; alt=&#34;圖片.png&#34;  data-zoomable loading=&#34;lazy&#34; /&gt;&lt;/p&gt;
 &lt;p&gt;&lt;em&gt;&lt;a href=&#34;https://blogs.vmware.com/cloud-foundation/2024/11/11/vmware-fusion-and-workstation-are-now-free-for-all-users/&#34;target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;VMware Fusion and Workstation are Now Free for All Users&lt;/a&gt;&lt;/em&gt;&lt;/p&gt;
 &lt;p&gt;相比VirtualBox，VMware擁有較好的CPU和記憶體負載管理，我想最直觀的感受上，就是同時運行數個VM時，VMware的反應給人更加靈敏，UI lag程度較低，使用體驗當然更佳。&lt;/p&gt;
 &lt;p&gt;而現在能夠免費使用這套擁有豐富業績與商用市占率的軟體，想想還滿令人意外的。因此個人往後也在考慮使用VMware來代替VirtualBox做為自己的測試機與lab。&lt;/p&gt;
@@ -45,88 +45,88 @@
     &lt;a href=&#34;#1-%e5%8f%96%e5%be%97vmware-workstation-pro-installer&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h3&gt;&lt;h4&gt;1.1. 前往產品列表頁面&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;11-前往產品列表頁面&#34;&gt;&lt;/span&gt;
     &lt;a href=&#34;#11-%e5%89%8d%e5%be%80%e7%94%a2%e5%93%81%e5%88%97%e8%a1%a8%e9%a0%81%e9%9d%a2&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h4&gt;&lt;p&gt;首先前往VMware官方網站: &lt;a href=&#34;https://www.vmware.com/&#34;target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;VMware by Broadcom - Cloud Computing for the Enterprise&lt;/a&gt;&lt;/p&gt;
 &lt;p&gt;&lt;figure&gt;
-    &lt;img src=&#34;https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/4427513/58921f36-d216-4be6-9603-23fed08c819d.png&#34; title=&#34;點擊進去後的畫面↑&#34; alt=&#34;圖片.png&#34;  loading=&#34;lazy&#34; /&gt;
+    &lt;img src=&#34;https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/4427513/58921f36-d216-4be6-9603-23fed08c819d.png&#34; title=&#34;點擊進去後的畫面↑&#34; alt=&#34;圖片.png&#34;  data-zoomable loading=&#34;lazy&#34; /&gt;
     &lt;figcaption&gt;點擊進去後的畫面↑&lt;/figcaption&gt;
   &lt;/figure&gt;&lt;/p&gt;
 &lt;p&gt;&lt;figure&gt;
-    &lt;img src=&#34;https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/4427513/c88c748c-468c-429b-bc4d-20cdfe9cc185.png&#34; title=&#34;接著展開上方「Products」列表，會看到下方有個「SEE DESKTOP HYPERVISORS」，然後點擊它&#34; alt=&#34;圖片.png&#34;  loading=&#34;lazy&#34; /&gt;
+    &lt;img src=&#34;https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/4427513/c88c748c-468c-429b-bc4d-20cdfe9cc185.png&#34; title=&#34;接著展開上方「Products」列表，會看到下方有個「SEE DESKTOP HYPERVISORS」，然後點擊它&#34; alt=&#34;圖片.png&#34;  data-zoomable loading=&#34;lazy&#34; /&gt;
     &lt;figcaption&gt;接著展開上方「Products」列表，會看到下方有個「SEE DESKTOP HYPERVISORS」，然後點擊它&lt;/figcaption&gt;
   &lt;/figure&gt;&lt;/p&gt;
 &lt;p&gt;&lt;figure&gt;
-    &lt;img src=&#34;https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/4427513/cf0ba1c1-619d-4107-b7f5-0d815e1ce64c.png&#34; title=&#34;出現Fusion and Workstation畫面，選擇「DOWNLOAD NOW」&#34; alt=&#34;圖片.png&#34;  loading=&#34;lazy&#34; /&gt;
+    &lt;img src=&#34;https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/4427513/cf0ba1c1-619d-4107-b7f5-0d815e1ce64c.png&#34; title=&#34;出現Fusion and Workstation畫面，選擇「DOWNLOAD NOW」&#34; alt=&#34;圖片.png&#34;  data-zoomable loading=&#34;lazy&#34; /&gt;
     &lt;figcaption&gt;出現Fusion and Workstation畫面，選擇「DOWNLOAD NOW」&lt;/figcaption&gt;
   &lt;/figure&gt;&lt;/p&gt;
 &lt;h4&gt;1.2. 註冊Broadcom帳號(尚未註冊者)&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;12-註冊broadcom帳號尚未註冊者&#34;&gt;&lt;/span&gt;
     &lt;a href=&#34;#12-%e8%a8%bb%e5%86%8abroadcom%e5%b8%b3%e8%99%9f%e5%b0%9a%e6%9c%aa%e8%a8%bb%e5%86%8a%e8%80%85&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h4&gt;&lt;p&gt;接著會遷移至Broadcom的註冊畫面(由於VMware已被Broadcom收購，相關產品的存取動作需透過其官網)&lt;/p&gt;
 &lt;p&gt;&lt;figure&gt;
-    &lt;img src=&#34;https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/4427513/796d3f6f-c4d1-4536-acb7-228e8a6dad8a.png&#34; title=&#34;如果你先前已註冊過Broadcom的話則直接輸入Username，若無的話則依序點選右上角 LOGIN &amp;gt; REGISTER 來進行註冊&#34; alt=&#34;圖片.png&#34;  loading=&#34;lazy&#34; /&gt;
+    &lt;img src=&#34;https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/4427513/796d3f6f-c4d1-4536-acb7-228e8a6dad8a.png&#34; title=&#34;如果你先前已註冊過Broadcom的話則直接輸入Username，若無的話則依序點選右上角 LOGIN &amp;gt; REGISTER 來進行註冊&#34; alt=&#34;圖片.png&#34;  data-zoomable loading=&#34;lazy&#34; /&gt;
     &lt;figcaption&gt;如果你先前已註冊過Broadcom的話則直接輸入Username，若無的話則依序點選右上角 LOGIN &amp;gt; REGISTER 來進行註冊&lt;/figcaption&gt;
   &lt;/figure&gt;&lt;/p&gt;
 &lt;p&gt;&lt;figure&gt;
-    &lt;img src=&#34;https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/4427513/5f3c7e43-bda1-4554-b07a-7456baaa3a5d.png&#34; title=&#34;註冊畫面會出現，在這裡使用信箱註冊&#34; alt=&#34;圖片.png&#34;  loading=&#34;lazy&#34; /&gt;
+    &lt;img src=&#34;https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/4427513/5f3c7e43-bda1-4554-b07a-7456baaa3a5d.png&#34; title=&#34;註冊畫面會出現，在這裡使用信箱註冊&#34; alt=&#34;圖片.png&#34;  data-zoomable loading=&#34;lazy&#34; /&gt;
     &lt;figcaption&gt;註冊畫面會出現，在這裡使用信箱註冊&lt;/figcaption&gt;
   &lt;/figure&gt;&lt;/p&gt;
 &lt;p&gt;&lt;figure&gt;
-    &lt;img src=&#34;https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/4427513/064fc789-670b-42c9-bd01-908c03d3e5c2.png&#34; title=&#34;依照指示完成收取認證碼進行驗證&#34; alt=&#34;圖片.png&#34;  loading=&#34;lazy&#34; /&gt;
+    &lt;img src=&#34;https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/4427513/064fc789-670b-42c9-bd01-908c03d3e5c2.png&#34; title=&#34;依照指示完成收取認證碼進行驗證&#34; alt=&#34;圖片.png&#34;  data-zoomable loading=&#34;lazy&#34; /&gt;
     &lt;figcaption&gt;依照指示完成收取認證碼進行驗證&lt;/figcaption&gt;
   &lt;/figure&gt;&lt;/p&gt;
 &lt;p&gt;&lt;figure&gt;
-    &lt;img src=&#34;https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/4427513/adeb77bd-a0c9-4ce2-add5-29085df9b483.png&#34; title=&#34;接著輸入姓名、國家、密碼等資訊，輸入完成後點擊「Create Account」按鈕&#34; alt=&#34;圖片.png&#34;  loading=&#34;lazy&#34; /&gt;
+    &lt;img src=&#34;https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/4427513/adeb77bd-a0c9-4ce2-add5-29085df9b483.png&#34; title=&#34;接著輸入姓名、國家、密碼等資訊，輸入完成後點擊「Create Account」按鈕&#34; alt=&#34;圖片.png&#34;  data-zoomable loading=&#34;lazy&#34; /&gt;
     &lt;figcaption&gt;接著輸入姓名、國家、密碼等資訊，輸入完成後點擊「Create Account」按鈕&lt;/figcaption&gt;
   &lt;/figure&gt;&lt;/p&gt;
 &lt;p&gt;&lt;figure&gt;
-    &lt;img src=&#34;https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/4427513/1fe8192b-875c-4e7e-bac1-6a8d62fe664c.png&#34; title=&#34;這樣帳號註冊基本上已完成，系統會詢問是否要透過完成建立profile來解鎖更多服務，這裡我是跳過，直接選下方的「I&amp;#39;ll do it later」&#34; alt=&#34;圖片.png&#34;  loading=&#34;lazy&#34; /&gt;
+    &lt;img src=&#34;https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/4427513/1fe8192b-875c-4e7e-bac1-6a8d62fe664c.png&#34; title=&#34;這樣帳號註冊基本上已完成，系統會詢問是否要透過完成建立profile來解鎖更多服務，這裡我是跳過，直接選下方的「I&amp;#39;ll do it later」&#34; alt=&#34;圖片.png&#34;  data-zoomable loading=&#34;lazy&#34; /&gt;
     &lt;figcaption&gt;這樣帳號註冊基本上已完成，系統會詢問是否要透過完成建立profile來解鎖更多服務，這裡我是跳過，直接選下方的「I&amp;#39;ll do it later」&lt;/figcaption&gt;
   &lt;/figure&gt;&lt;/p&gt;
 &lt;h4&gt;1.3. 登入Broadcom帳號並取得Instller&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;13-登入broadcom帳號並取得instller&#34;&gt;&lt;/span&gt;
     &lt;a href=&#34;#13-%e7%99%bb%e5%85%a5broadcom%e5%b8%b3%e8%99%9f%e4%b8%a6%e5%8f%96%e5%be%97instller&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h4&gt;&lt;p&gt;畫面接著會跳轉回到Broadcom官網
 &lt;figure&gt;
-    &lt;img src=&#34;https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/4427513/4faef7ab-34e9-4327-9492-214913c2c2b5.png&#34; title=&#34;點選右上方「Login」鈕&#34; alt=&#34;圖片.png&#34;  loading=&#34;lazy&#34; /&gt;
+    &lt;img src=&#34;https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/4427513/4faef7ab-34e9-4327-9492-214913c2c2b5.png&#34; title=&#34;點選右上方「Login」鈕&#34; alt=&#34;圖片.png&#34;  data-zoomable loading=&#34;lazy&#34; /&gt;
     &lt;figcaption&gt;點選右上方「Login」鈕&lt;/figcaption&gt;
   &lt;/figure&gt;&lt;/p&gt;
 &lt;p&gt;&lt;figure&gt;
-    &lt;img src=&#34;https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/4427513/b4c10e14-a1d9-47a1-8e56-e22cc57e39a0.png&#34; title=&#34;回到先前登入畫面了，在此輸入剛剛註冊的帳號密碼來登入。另外，Username欄請輸入你剛剛註冊的信箱&#34; alt=&#34;圖片.png&#34;  loading=&#34;lazy&#34; /&gt;
+    &lt;img src=&#34;https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/4427513/b4c10e14-a1d9-47a1-8e56-e22cc57e39a0.png&#34; title=&#34;回到先前登入畫面了，在此輸入剛剛註冊的帳號密碼來登入。另外，Username欄請輸入你剛剛註冊的信箱&#34; alt=&#34;圖片.png&#34;  data-zoomable loading=&#34;lazy&#34; /&gt;
     &lt;figcaption&gt;回到先前登入畫面了，在此輸入剛剛註冊的帳號密碼來登入。另外，Username欄請輸入你剛剛註冊的信箱&lt;/figcaption&gt;
   &lt;/figure&gt;&lt;/p&gt;
 &lt;p&gt;&lt;figure&gt;
-    &lt;img src=&#34;https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/4427513/607f32fa-d202-4d49-8279-27bce798bcf2.png&#34; title=&#34;登入成功後，點選畫面右上方icon當中任一個選項&#34; alt=&#34;圖片.png&#34;  loading=&#34;lazy&#34; /&gt;
+    &lt;img src=&#34;https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/4427513/607f32fa-d202-4d49-8279-27bce798bcf2.png&#34; title=&#34;登入成功後，點選畫面右上方icon當中任一個選項&#34; alt=&#34;圖片.png&#34;  data-zoomable loading=&#34;lazy&#34; /&gt;
     &lt;figcaption&gt;登入成功後，點選畫面右上方icon當中任一個選項&lt;/figcaption&gt;
   &lt;/figure&gt;&lt;/p&gt;
 &lt;p&gt;&lt;figure&gt;
-    &lt;img src=&#34;https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/4427513/48c3f601-a6d2-4ddf-b910-948a78961a76.png&#34; title=&#34;這樣畫面就會遷移到「My Dashboard」，然後展開左方選單&#34; alt=&#34;圖片.png&#34;  loading=&#34;lazy&#34; /&gt;
+    &lt;img src=&#34;https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/4427513/48c3f601-a6d2-4ddf-b910-948a78961a76.png&#34; title=&#34;這樣畫面就會遷移到「My Dashboard」，然後展開左方選單&#34; alt=&#34;圖片.png&#34;  data-zoomable loading=&#34;lazy&#34; /&gt;
     &lt;figcaption&gt;這樣畫面就會遷移到「My Dashboard」，然後展開左方選單&lt;/figcaption&gt;
   &lt;/figure&gt;&lt;/p&gt;
 &lt;p&gt;&lt;figure&gt;
-    &lt;img src=&#34;https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/4427513/6b04b823-9179-490e-9578-37dc7aa00a44.png&#34; title=&#34;進入「My Downloads」頁面，再點選「Free Software Downloads available HERE」&#34; alt=&#34;圖片.png&#34;  loading=&#34;lazy&#34; /&gt;
+    &lt;img src=&#34;https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/4427513/6b04b823-9179-490e-9578-37dc7aa00a44.png&#34; title=&#34;進入「My Downloads」頁面，再點選「Free Software Downloads available HERE」&#34; alt=&#34;圖片.png&#34;  data-zoomable loading=&#34;lazy&#34; /&gt;
     &lt;figcaption&gt;進入「My Downloads」頁面，再點選「Free Software Downloads available HERE」&lt;/figcaption&gt;
   &lt;/figure&gt;&lt;/p&gt;
 &lt;p&gt;※Mac使用者想使用Fusion的話在此列表裡也找得到↓
 &lt;figure&gt;
-    &lt;img src=&#34;https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/4427513/1f1ef5c8-a2bc-4cb9-a27c-f3efc57afe83.png&#34; title=&#34;接著會出現產品列表，找到我們要找的VMware Workstation Pro並點選它&#34; alt=&#34;圖片.png&#34;  loading=&#34;lazy&#34; /&gt;
+    &lt;img src=&#34;https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/4427513/1f1ef5c8-a2bc-4cb9-a27c-f3efc57afe83.png&#34; title=&#34;接著會出現產品列表，找到我們要找的VMware Workstation Pro並點選它&#34; alt=&#34;圖片.png&#34;  data-zoomable loading=&#34;lazy&#34; /&gt;
     &lt;figcaption&gt;接著會出現產品列表，找到我們要找的VMware Workstation Pro並點選它&lt;/figcaption&gt;
   &lt;/figure&gt;&lt;/p&gt;
 &lt;p&gt;&lt;figure&gt;
-    &lt;img src=&#34;https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/4427513/e513f45a-a489-4bd5-b759-e66f61393f37.png&#34; title=&#34;這次我選擇「VMware Workstation Pro 25H2 for Windows」，並選擇發行版「25H2u1」&#34; alt=&#34;圖片.png&#34;  loading=&#34;lazy&#34; /&gt;
+    &lt;img src=&#34;https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/4427513/e513f45a-a489-4bd5-b759-e66f61393f37.png&#34; title=&#34;這次我選擇「VMware Workstation Pro 25H2 for Windows」，並選擇發行版「25H2u1」&#34; alt=&#34;圖片.png&#34;  data-zoomable loading=&#34;lazy&#34; /&gt;
     &lt;figcaption&gt;這次我選擇「VMware Workstation Pro 25H2 for Windows」，並選擇發行版「25H2u1」&lt;/figcaption&gt;
   &lt;/figure&gt;&lt;/p&gt;
 &lt;p&gt;&lt;figure&gt;
-    &lt;img src=&#34;https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/4427513/d9b34939-893f-47e4-815b-442de892816d.png&#34; title=&#34;展開使用條款後，勾選「I agree to the Terms and Conditions」&#34; alt=&#34;圖片.png&#34;  loading=&#34;lazy&#34; /&gt;
+    &lt;img src=&#34;https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/4427513/d9b34939-893f-47e4-815b-442de892816d.png&#34; title=&#34;展開使用條款後，勾選「I agree to the Terms and Conditions」&#34; alt=&#34;圖片.png&#34;  data-zoomable loading=&#34;lazy&#34; /&gt;
     &lt;figcaption&gt;展開使用條款後，勾選「I agree to the Terms and Conditions」&lt;/figcaption&gt;
   &lt;/figure&gt;&lt;/p&gt;
 &lt;p&gt;&lt;figure&gt;
-    &lt;img src=&#34;https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/4427513/0c4565f5-f808-4d72-bfeb-d83eca1e7529.png&#34; title=&#34;右下方下載按鈕即可點選&#34; alt=&#34;圖片.png&#34;  loading=&#34;lazy&#34; /&gt;
+    &lt;img src=&#34;https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/4427513/0c4565f5-f808-4d72-bfeb-d83eca1e7529.png&#34; title=&#34;右下方下載按鈕即可點選&#34; alt=&#34;圖片.png&#34;  data-zoomable loading=&#34;lazy&#34; /&gt;
     &lt;figcaption&gt;右下方下載按鈕即可點選&lt;/figcaption&gt;
   &lt;/figure&gt;&lt;/p&gt;
 &lt;p&gt;&lt;figure&gt;
-    &lt;img src=&#34;https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/4427513/81c5ee60-2257-417a-b1cd-44369f80d7f5.png&#34; title=&#34;出現「Prior to downloading this file, additional verification is required. Proceed?」(下載此檔案之前須完成追加認證資訊。是否繼續?)，點選「Yes」&#34; alt=&#34;圖片.png&#34;  loading=&#34;lazy&#34; /&gt;
+    &lt;img src=&#34;https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/4427513/81c5ee60-2257-417a-b1cd-44369f80d7f5.png&#34; title=&#34;出現「Prior to downloading this file, additional verification is required. Proceed?」(下載此檔案之前須完成追加認證資訊。是否繼續?)，點選「Yes」&#34; alt=&#34;圖片.png&#34;  data-zoomable loading=&#34;lazy&#34; /&gt;
     &lt;figcaption&gt;出現「Prior to downloading this file, additional verification is required. Proceed?」(下載此檔案之前須完成追加認證資訊。是否繼續?)，點選「Yes」&lt;/figcaption&gt;
   &lt;/figure&gt;&lt;/p&gt;
 &lt;p&gt;&lt;figure&gt;
-    &lt;img src=&#34;https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/4427513/a634dfec-8b0b-4524-8f16-09545b505522.png&#34; title=&#34;接著要填寫英文地址等資訊，大概填寫之後，點擊下方「Sumit」按鈕&#34; alt=&#34;圖片.png&#34;  loading=&#34;lazy&#34; /&gt;
+    &lt;img src=&#34;https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/4427513/a634dfec-8b0b-4524-8f16-09545b505522.png&#34; title=&#34;接著要填寫英文地址等資訊，大概填寫之後，點擊下方「Sumit」按鈕&#34; alt=&#34;圖片.png&#34;  data-zoomable loading=&#34;lazy&#34; /&gt;
     &lt;figcaption&gt;接著要填寫英文地址等資訊，大概填寫之後，點擊下方「Sumit」按鈕&lt;/figcaption&gt;
   &lt;/figure&gt;&lt;/p&gt;
 &lt;p&gt;&lt;figure&gt;
-    &lt;img src=&#34;https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/4427513/88502803-de9a-410c-b9d6-fe9bfecbf5ae.png&#34; title=&#34;畫面又將返回剛剛的下載頁面，再次點選右下角的下載icon按鈕，Installer下載就開始了&#34; alt=&#34;圖片.png&#34;  loading=&#34;lazy&#34; /&gt;
+    &lt;img src=&#34;https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/4427513/88502803-de9a-410c-b9d6-fe9bfecbf5ae.png&#34; title=&#34;畫面又將返回剛剛的下載頁面，再次點選右下角的下載icon按鈕，Installer下載就開始了&#34; alt=&#34;圖片.png&#34;  data-zoomable loading=&#34;lazy&#34; /&gt;
     &lt;figcaption&gt;畫面又將返回剛剛的下載頁面，再次點選右下角的下載icon按鈕，Installer下載就開始了&lt;/figcaption&gt;
   &lt;/figure&gt;&lt;/p&gt;
 &lt;hr&gt;
@@ -134,36 +134,36 @@
     &lt;a href=&#34;#2%e9%96%8b%e5%a7%8b%e6%93%8d%e4%bd%9cvmware-workstation-pro&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h3&gt;&lt;h4&gt;2.1.安裝VMware Workstation Pro&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;21安裝vmware-workstation-pro&#34;&gt;&lt;/span&gt;
     &lt;a href=&#34;#21%e5%ae%89%e8%a3%9dvmware-workstation-pro&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h4&gt;&lt;p&gt;點擊Installer開始安裝。基本上只須照著Wizard指示一步一步進行即可
 &lt;figure&gt;
-    &lt;img src=&#34;https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/4427513/d3e6c89b-33e6-49f0-9984-baad4ec0d499.png&#34; title=&#34;筆者OS語言設定為日文所以Wizard畫面預設為日文&#34; alt=&#34;圖片.png&#34;  loading=&#34;lazy&#34; /&gt;
+    &lt;img src=&#34;https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/4427513/d3e6c89b-33e6-49f0-9984-baad4ec0d499.png&#34; title=&#34;筆者OS語言設定為日文所以Wizard畫面預設為日文&#34; alt=&#34;圖片.png&#34;  data-zoomable loading=&#34;lazy&#34; /&gt;
     &lt;figcaption&gt;筆者OS語言設定為日文所以Wizard畫面預設為日文&lt;/figcaption&gt;
   &lt;/figure&gt;&lt;/p&gt;
 &lt;p&gt;&lt;figure&gt;
-    &lt;img src=&#34;https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/4427513/4bfc4cbe-0289-4307-8258-2137bddb36f7.png&#34; title=&#34;安裝完成，軟體啟動後畫面如上&#34; alt=&#34;圖片.png&#34;  loading=&#34;lazy&#34; /&gt;
+    &lt;img src=&#34;https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/4427513/4bfc4cbe-0289-4307-8258-2137bddb36f7.png&#34; title=&#34;安裝完成，軟體啟動後畫面如上&#34; alt=&#34;圖片.png&#34;  data-zoomable loading=&#34;lazy&#34; /&gt;
     &lt;figcaption&gt;安裝完成，軟體啟動後畫面如上&lt;/figcaption&gt;
   &lt;/figure&gt;&lt;/p&gt;
 &lt;p&gt;接著來就用我手邊現有的RockyLinux 10.1 minimal iso檔來快速試試搭建。搭建流程與VirtaulBox大同小異。或許是VirtaulBox用習慣了，Workstation主控畫面給人較簡潔洗練的感覺。點擊紅框處的建置新虛擬機器
-&lt;img src=&#34;https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/4427513/454e6ddd-6a19-464c-97a3-79cbb65a4312.png&#34; alt=&#34;圖片.png&#34;  loading=&#34;lazy&#34; /&gt;&lt;/p&gt;
+&lt;img src=&#34;https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/4427513/454e6ddd-6a19-464c-97a3-79cbb65a4312.png&#34; alt=&#34;圖片.png&#34;  data-zoomable loading=&#34;lazy&#34; /&gt;&lt;/p&gt;
 &lt;h4&gt;2.2.安裝VMware Workstation Pro&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;22安裝vmware-workstation-pro&#34;&gt;&lt;/span&gt;
     &lt;a href=&#34;#22%e5%ae%89%e8%a3%9dvmware-workstation-pro&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h4&gt;&lt;p&gt;接著VM建置精靈視窗就會啟動了。接下來的VM資源配置步驟跟其他虛擬化軟體如VirtualBox等都差不多。這裡我選擇第一個標準搭建模式，然後點擊下一步
-&lt;img src=&#34;https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/4427513/73cf9281-8fe3-4fe7-af4e-61ca24023c1a.png&#34; alt=&#34;圖片.png&#34;  loading=&#34;lazy&#34; /&gt;&lt;/p&gt;
+&lt;img src=&#34;https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/4427513/73cf9281-8fe3-4fe7-af4e-61ca24023c1a.png&#34; alt=&#34;圖片.png&#34;  data-zoomable loading=&#34;lazy&#34; /&gt;&lt;/p&gt;
 &lt;p&gt;這裡我將手邊現有的iso檔插入，精靈視窗就會自動偵測出OS。然後選擇下一步
-&lt;img src=&#34;https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/4427513/f1863065-100e-41e6-99ad-f2936f27533d.png&#34; alt=&#34;圖片.png&#34;  loading=&#34;lazy&#34; /&gt;&lt;/p&gt;
+&lt;img src=&#34;https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/4427513/f1863065-100e-41e6-99ad-f2936f27533d.png&#34; alt=&#34;圖片.png&#34;  data-zoomable loading=&#34;lazy&#34; /&gt;&lt;/p&gt;
 &lt;p&gt;在這裡輸入虛擬機名稱，點擊下一步
-&lt;img src=&#34;https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/4427513/87a0ad3c-6c0b-43e1-b1ac-94ad622e14f6.png&#34; alt=&#34;圖片.png&#34;  loading=&#34;lazy&#34; /&gt;&lt;/p&gt;
+&lt;img src=&#34;https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/4427513/87a0ad3c-6c0b-43e1-b1ac-94ad622e14f6.png&#34; alt=&#34;圖片.png&#34;  data-zoomable loading=&#34;lazy&#34; /&gt;&lt;/p&gt;
 &lt;p&gt;接著分配Disk容量，受限於我筆電容量，這裡我先給一個很小的容量，之後有需要可再回頭擴充。分配好了之後選擇下一步
-&lt;img src=&#34;https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/4427513/76e0448e-385b-4e40-9894-7ecc40c10bf1.png&#34; alt=&#34;圖片.png&#34;  loading=&#34;lazy&#34; /&gt;&lt;/p&gt;
+&lt;img src=&#34;https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/4427513/76e0448e-385b-4e40-9894-7ecc40c10bf1.png&#34; alt=&#34;圖片.png&#34;  data-zoomable loading=&#34;lazy&#34; /&gt;&lt;/p&gt;
 &lt;p&gt;接著馬上來到總覽畫面，標準快速搭建至此基本上完成，如果需要自定義更多硬體資源細節，選擇自定義硬體
-&lt;img src=&#34;https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/4427513/ee3d94e5-5089-4c46-be1d-f3cd2830a709.png&#34; alt=&#34;圖片.png&#34;  loading=&#34;lazy&#34; /&gt;&lt;/p&gt;
+&lt;img src=&#34;https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/4427513/ee3d94e5-5089-4c46-be1d-f3cd2830a709.png&#34; alt=&#34;圖片.png&#34;  data-zoomable loading=&#34;lazy&#34; /&gt;&lt;/p&gt;
 &lt;p&gt;自定義視窗就會打開，在這可以依需求配置記憶體、CPU、網路模式等硬體資源
-&lt;img src=&#34;https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/4427513/459d56dc-e228-4c44-8571-c79c69c5336f.png&#34; alt=&#34;圖片.png&#34;  loading=&#34;lazy&#34; /&gt;&lt;/p&gt;
+&lt;img src=&#34;https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/4427513/459d56dc-e228-4c44-8571-c79c69c5336f.png&#34; alt=&#34;圖片.png&#34;  data-zoomable loading=&#34;lazy&#34; /&gt;&lt;/p&gt;
 &lt;p&gt;這裡順帶提一下，標準搭建的預設網路模式是NAT，這裡我想讓VM跟Host機在同一個LAN，所以我選擇橋接(Bridge)模式。如果你有需要再另行追加像是network interface等硬體資源的話，可點擊左下方的追加按鈕
-&lt;img src=&#34;https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/4427513/b7b2295d-bd80-4001-8e1e-1cd4490a50f5.png&#34; alt=&#34;圖片.png&#34;  loading=&#34;lazy&#34; /&gt;&lt;/p&gt;
+&lt;img src=&#34;https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/4427513/b7b2295d-bd80-4001-8e1e-1cd4490a50f5.png&#34; alt=&#34;圖片.png&#34;  data-zoomable loading=&#34;lazy&#34; /&gt;&lt;/p&gt;
 &lt;p&gt;就會出現硬體資源追加畫面，再依照個人需求進行調整，好了之後選擇完成
-&lt;img src=&#34;https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/4427513/85368dd8-b9ea-4d52-b7e0-e0a244a06eac.png&#34; alt=&#34;圖片.png&#34;  loading=&#34;lazy&#34; /&gt;&lt;/p&gt;
+&lt;img src=&#34;https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/4427513/85368dd8-b9ea-4d52-b7e0-e0a244a06eac.png&#34; alt=&#34;圖片.png&#34;  data-zoomable loading=&#34;lazy&#34; /&gt;&lt;/p&gt;
 &lt;p&gt;回到總覽畫面，確定好後點擊完成，系統就會依照剛剛的配置來搭建VM了
-&lt;img src=&#34;https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/4427513/1ffe34b9-aef8-469d-ba77-e12ca4fa00c5.png&#34; alt=&#34;圖片.png&#34;  loading=&#34;lazy&#34; /&gt;&lt;/p&gt;
+&lt;img src=&#34;https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/4427513/1ffe34b9-aef8-469d-ba77-e12ca4fa00c5.png&#34; alt=&#34;圖片.png&#34;  data-zoomable loading=&#34;lazy&#34; /&gt;&lt;/p&gt;
 &lt;p&gt;搭建好後，VM預設power on。並且Workstation主控畫面左欄的VM一覽，可以看到搭建好的VM了。接著就可以自由使用了
-&lt;img src=&#34;https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/4427513/9c7b6709-3e7f-4e99-a2e2-3bff2166af8d.png&#34; alt=&#34;圖片.png&#34;  loading=&#34;lazy&#34; /&gt;&lt;/p&gt;
+&lt;img src=&#34;https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/4427513/9c7b6709-3e7f-4e99-a2e2-3bff2166af8d.png&#34; alt=&#34;圖片.png&#34;  data-zoomable loading=&#34;lazy&#34; /&gt;&lt;/p&gt;
 &lt;hr&gt;
 &lt;h3&gt;最後&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;最後&#34;&gt;&lt;/span&gt;
     &lt;a href=&#34;#%e6%9c%80%e5%be%8c&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h3&gt;&lt;p&gt;本文記錄了從一開始取得VMware Workstation Pro Installer檔，到實際安裝、建置VM的過程。除了一開始取得Installer步驟較繁瑣，其餘安裝之後的VM建置流程概念跟其他虛擬化軟體是一樣的。&lt;/p&gt;

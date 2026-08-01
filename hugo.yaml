@@ -1,6 +1,6 @@
 baseURL: 
 locale: en-us
-title: Infrastructure Engineer - Yukun Tseng
+title: SoTech
 author: Tseng
 description: This is a blog about infrastructure and technology.
 theme: hextra
@@ -10,12 +10,25 @@ menu:
     - name: About Me
       weight: 1
       pageRef: /aboutme
-    - name: Side Projects
+    - identifier: blog
       weight: 2
+      name: Blog
+      pageRef: /blog
+    - identifier: sideprojects
+      name: Side Projects
+      parent: blog
       pageRef: /blog/sideprojects
-    - name: Technotes
-      weight: 3
+    - identifier: technotes
+      name: Tech Notes
+      parent: blog
       pageRef: /blog/technotes
+    - identifier: tags
+      weight: 3
+      name: Tags
+    - identifier: vmware
+      name: VMWare
+      parent: tags
+      pageRef: /tags/vmware/
     - name: Search
       weight: 4
       params:
@@ -25,3 +38,28 @@ menu:
       url: "https://github.com/YukunTseng/YukunTseng.github.io"
       params:
         icon: github
+
+params:
+  blog:
+    list:
+      displayTags: true
+  toc:
+    displayTags: true
+
+  imageZoom:
+    enable: true
+
+  theme:
+    # light | dark | system
+    default: dark
+    displayToggle: false
+
+  footer:
+    enable: true
+    displayCopyright: false
+    displayPoweredBy: false
+    width: normal
+  
+  page:
+    # full (100%), wide (90rem), normal (1280px)
+    width: full

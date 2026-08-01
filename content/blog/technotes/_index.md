@@ -4,7 +4,6 @@ draft: true
 title: 'Technotes'
 ---
 
-{{< hextra/hero-subtitle >}}
-&nbsp;<br class="hx:sm:block hx:hidden" />*這裡撰寫了Infra技術相關學習筆記，以及實際專案中碰到的各式經驗分享*
+{{< hextra/hero-subtitle style="margin:.3rem 0 2rem 0">}}
+日々習得した技術の記事や構築手順などをまとめています。
 {{< /hextra/hero-subtitle >}}
----
