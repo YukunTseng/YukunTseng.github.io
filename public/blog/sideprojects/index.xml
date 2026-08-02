@@ -27,6 +27,17 @@
         &lt;hr&gt;
 &lt;p&gt;Apache＋JMeter＋自作リソースログ収集スクリプトを用いて、CPU使用率、Apache Worker数、Linuxスケジューラの観点から検証し、調査結果を本記事にまとめてみました。&lt;/p&gt;
 &lt;hr&gt;
+&lt;p&gt;本検証用のログ収集スクリプト、phpスクリプト、グラフや実際の集計データなどは、個人Githubをご参照ください。&lt;/p&gt;
+&lt;div class=&#34;hextra-cards hx:mt-4 hx:gap-4 hx:grid not-prose&#34; style=&#34;--hextra-cards-grid-cols: 3;&#34;&gt;
+  &lt;a
+    class=&#34;hextra-card hx:group hx:flex hx:flex-col hx:justify-start hx:overflow-hidden hx:rounded-lg hx:border hx:border-gray-200 hx:text-current hx:no-underline hx:dark:shadow-none hx:hover:shadow-gray-100 hx:dark:hover:shadow-none hx:shadow-gray-100 hx:active:shadow-sm hx:active:shadow-gray-200 hx:transition-all hx:duration-200 hx:hover:border-gray-300 hx:bg-transparent hx:shadow-xs hx:dark:border-neutral-800 hx:hover:bg-slate-50 hx:hover:shadow-md hx:dark:hover:border-neutral-700 hx:dark:hover:bg-neutral-900&#34;href=&#34;https://github.com/YukunTseng/YukunTseng.github.io/tree/main/content/blog/sideprojects/Apache%20Throughput%20Monitoring&#34;
+      target=&#34;_blank&#34; rel=&#34;noreferrer&#34;&gt;&lt;div class=&#34;hx:mt-auto&#34;&gt;
+      &lt;span class=&#34;hextra-card-icon hx:flex hx:font-semibold hx:items-start hx:gap-2 hx:p-4 hx:text-gray-700 hx:hover:text-gray-900 hx:dark:text-neutral-200 hx:dark:hover:text-neutral-50&#34;&gt;&lt;svg fill=&#34;currentColor&#34; viewBox=&#34;3 3 18 18&#34;&gt;
+    &lt;path d=&#34;M12 3C7.0275 3 3 7.12937 3 12.2276C3 16.3109 5.57625 19.7597 9.15374 20.9824C9.60374 21.0631 9.77249 20.7863 9.77249 20.5441C9.77249 20.3249 9.76125 19.5982 9.76125 18.8254C7.5 19.2522 6.915 18.2602 6.735 17.7412C6.63375 17.4759 6.19499 16.6569 5.8125 16.4378C5.4975 16.2647 5.0475 15.838 5.80124 15.8264C6.51 15.8149 7.01625 16.4954 7.18499 16.7723C7.99499 18.1679 9.28875 17.7758 9.80625 17.5335C9.885 16.9337 10.1212 16.53 10.38 16.2993C8.3775 16.0687 6.285 15.2728 6.285 11.7432C6.285 10.7397 6.63375 9.9092 7.20749 9.26326C7.1175 9.03257 6.8025 8.08674 7.2975 6.81794C7.2975 6.81794 8.05125 6.57571 9.77249 7.76377C10.4925 7.55615 11.2575 7.45234 12.0225 7.45234C12.7875 7.45234 13.5525 7.55615 14.2725 7.76377C15.9937 6.56418 16.7475 6.81794 16.7475 6.81794C17.2424 8.08674 16.9275 9.03257 16.8375 9.26326C17.4113 9.9092 17.76 10.7281 17.76 11.7432C17.76 15.2843 15.6563 16.0687 13.6537 16.2993C13.98 16.5877 14.2613 17.1414 14.2613 18.0065C14.2613 19.2407 14.25 20.2326 14.25 20.5441C14.25 20.7863 14.4188 21.0746 14.8688 20.9824C16.6554 20.364 18.2079 19.1866 19.3078 17.6162C20.4077 16.0457 20.9995 14.1611 21 12.2276C21 7.12937 16.9725 3 12 3Z&#34;&gt;&lt;/path&gt;
+  &lt;/svg&gt;
+  Apache Throughput Monitoring&lt;/span&gt;&lt;/div&gt;&lt;/a&gt;
+&lt;/div&gt;
+
 &lt;p&gt;先に今回の検証結果をお伝えすると、CPU使用率だけではなく、
 LinuxスケジューラによるCPU Resource Contentionも、Throughputを制限する要因であることが確認できました。
 それでは、実際の検証内容と測定結果について説明していきます。&lt;/p&gt;
@@ -138,8 +149,13 @@ Apache HTTPサーバの性能限界を調査しました。&lt;/p&gt;
 &lt;/ul&gt;
 &lt;p&gt;測定期間中に集計したデータは平均値を計算し、各試験の代表値として使用しました。&lt;/p&gt;
 &lt;h3&gt;4.3. 負荷試験用PHPスクリプト&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;43-負荷試験用phpスクリプト&#34;&gt;&lt;/span&gt;
-    &lt;a href=&#34;#43-%e8%b2%a0%e8%8d%b7%e8%a9%a6%e9%a8%93%e7%94%a8php%e3%82%b9%e3%82%af%e3%83%aa%e3%83%97%e3%83%88&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h3&gt;&lt;p&gt;ApacheとPHP-FPMに対して軽量なCPUワークロードを与えるため、以下のPHPスクリプトを使用しました。&lt;/p&gt;
-&lt;div class=&#34;hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code&#34;&gt;
+    &lt;a href=&#34;#43-%e8%b2%a0%e8%8d%b7%e8%a9%a6%e9%a8%93%e7%94%a8php%e3%82%b9%e3%82%af%e3%83%aa%e3%83%97%e3%83%88&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h3&gt;&lt;p&gt;ApacheとPHP-FPMに対して軽量なCPUワークロードを与えるため、以下のPHPスクリプトを使用しました。
+&lt;details class=&#34;hx:last-of-type:mb-0 hx:rounded-lg hx:bg-neutral-50 hx:dark:bg-neutral-800 hx:p-2 hx:mt-4 hx:group&#34; &gt;
+  &lt;summary class=&#34;hx:flex hx:items-center hx:cursor-pointer hx:select-none hx:list-none hx:p-1 hx:rounded-sm hx:transition-colors hx:hover:bg-gray-100 hx:dark:hover:bg-neutral-800 hx:before:mr-1 hx:before:inline-block hx:before:transition-transform hx:before:content-[&#39;&#39;] hx:dark:before:invert hx:rtl:before:rotate-180 hx:group-open:before:rotate-90&#34;&gt;
+    &lt;strong class=&#34;hx:text-lg&#34;&gt;スクリプトを展開&lt;/strong&gt;
+  &lt;/summary&gt;
+  &lt;div class=&#34;hx:p-2 hx:overflow-hidden&#34;&gt;
+    &lt;div class=&#34;hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code&#34;&gt;
 
 &lt;div class=&#34;hextra-code-filename not-prose&#34; dir=&#34;auto&#34;&gt;/var/www/html/cpu.php&lt;/div&gt;&lt;div&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-php&#34; data-lang=&#34;php&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;##平方根計算と加算処理を繰り返し実行することで、CPU負荷を発生させています
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
@@ -167,6 +183,10 @@ Apache HTTPサーバの性能限界を調査しました。&lt;/p&gt;
   &lt;/button&gt;
 &lt;/div&gt;
 &lt;/div&gt;
+
+  &lt;/div&gt;
+&lt;/details&gt;
+&lt;/p&gt;
 &lt;p&gt;上記スクリプトで1リクエスト当たりの処理時間は、約8msであることが確認できています↓&lt;/p&gt;
 &lt;div class=&#34;hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code&#34;&gt;
 
@@ -187,10 +207,15 @@ Apache HTTPサーバの性能限界を調査しました。&lt;/p&gt;
 &lt;/div&gt;
 &lt;/div&gt;
 &lt;h3&gt;4.4.データフロー&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;44データフロー&#34;&gt;&lt;/span&gt;
-    &lt;a href=&#34;#44%e3%83%87%e3%83%bc%e3%82%bf%e3%83%95%e3%83%ad%e3%83%bc&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h3&gt;&lt;p&gt;今回負荷試験のデータフローは以下のイメージです。&lt;/p&gt;
-&lt;div role=&#34;img&#34; aria-label=&#34;Diagram&#34;&gt;
+    &lt;a href=&#34;#44%e3%83%87%e3%83%bc%e3%82%bf%e3%83%95%e3%83%ad%e3%83%bc&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h3&gt;&lt;p&gt;今回負荷試験のデータフローは以下のイメージです。
+&lt;details class=&#34;hx:last-of-type:mb-0 hx:rounded-lg hx:bg-neutral-50 hx:dark:bg-neutral-800 hx:p-2 hx:mt-4 hx:group&#34; &gt;
+  &lt;summary class=&#34;hx:flex hx:items-center hx:cursor-pointer hx:select-none hx:list-none hx:p-1 hx:rounded-sm hx:transition-colors hx:hover:bg-gray-100 hx:dark:hover:bg-neutral-800 hx:before:mr-1 hx:before:inline-block hx:before:transition-transform hx:before:content-[&#39;&#39;] hx:dark:before:invert hx:rtl:before:rotate-180 hx:group-open:before:rotate-90&#34;&gt;
+    &lt;strong class=&#34;hx:text-lg&#34;&gt;データフローを展開&lt;/strong&gt;
+  &lt;/summary&gt;
+  &lt;div class=&#34;hx:p-2 hx:overflow-hidden&#34;&gt;
+    &lt;div role=&#34;img&#34; aria-label=&#34;Diagram&#34;&gt;
   &lt;pre class=&#34;mermaid hx:mt-6&#34;&gt;
-    graph LR
+    graph TB
 　
     A[JMeter] --&amp;gt;|HTTPリクエスト| B[Apache]
     B --&amp;gt;|FastCGI| C[PHP-FPM]
@@ -200,7 +225,11 @@ Apache HTTPサーバの性能限界を調査しました。&lt;/p&gt;
     C --&amp;gt;|HTTPレスポンス| B
     B --&amp;gt;|HTTPレスポンス| A
   &lt;/pre&gt;
-&lt;/div&gt;&lt;h2&gt;5. 観測指標&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;5-観測指標&#34;&gt;&lt;/span&gt;
+&lt;/div&gt;
+  &lt;/div&gt;
+&lt;/details&gt;
+&lt;/p&gt;
+&lt;h2&gt;5. 観測指標&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;5-観測指標&#34;&gt;&lt;/span&gt;
     &lt;a href=&#34;#5-%e8%a6%b3%e6%b8%ac%e6%8c%87%e6%a8%99&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;以下3観点から観測したい指標を選定しました。&lt;/p&gt;
 &lt;table&gt;
   &lt;thead&gt;
@@ -228,93 +257,399 @@ Apache HTTPサーバの性能限界を調査しました。&lt;/p&gt;
       &lt;/tr&gt;
   &lt;/tbody&gt;
 &lt;/table&gt;
-&lt;p&gt;各指標の収集手段、指標の意味は以下の通りです。&lt;/p&gt;
-&lt;table&gt;
+&lt;p&gt;それぞれ指標の意味と観測する理由を説明していきます。&lt;/p&gt;
+&lt;h3&gt;5.1.HTTP性能&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;51http性能&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#51http%e6%80%a7%e8%83%bd&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h3&gt;&lt;table&gt;
   &lt;thead&gt;
       &lt;tr&gt;
           &lt;th&gt;指標&lt;/th&gt;
-          &lt;th&gt;収集手段&lt;/th&gt;
           &lt;th&gt;説明&lt;/th&gt;
+          &lt;th&gt;本検証で観測する理由&lt;/th&gt;
       &lt;/tr&gt;
   &lt;/thead&gt;
   &lt;tbody&gt;
       &lt;tr&gt;
-          &lt;td&gt;CPU Avg&lt;/td&gt;
-          &lt;td&gt;mpstatコマンド(自作スクリプト)&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-      &lt;/tr&gt;
-      &lt;tr&gt;
           &lt;td&gt;Average&lt;/td&gt;
-          &lt;td&gt;Aggregate Report出力&lt;/td&gt;
           &lt;td&gt;平均応答時間(ms)&lt;/td&gt;
+          &lt;td&gt;全体的な応答性能を把握するため&lt;/td&gt;
       &lt;/tr&gt;
       &lt;tr&gt;
           &lt;td&gt;Median&lt;/td&gt;
-          &lt;td&gt;Aggregate Report出力&lt;/td&gt;
           &lt;td&gt;応答時間中央値(ms)&lt;/td&gt;
+          &lt;td&gt;平常時の実際の応答速度を把握するため&lt;/td&gt;
       &lt;/tr&gt;
       &lt;tr&gt;
-          &lt;td&gt;90% Line&lt;/td&gt;
-          &lt;td&gt;Aggregate Report出力&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;90%Line&lt;/td&gt;
+          &lt;td&gt;90%タイル(90%の値はこの値以下)&lt;/td&gt;
+          &lt;td&gt;利用者の大部分が体感する応答時間を評価するため&lt;/td&gt;
       &lt;/tr&gt;
       &lt;tr&gt;
-          &lt;td&gt;95% Line&lt;/td&gt;
-          &lt;td&gt;Aggregate Report出力&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;95%Line&lt;/td&gt;
+          &lt;td&gt;90%タイル(95%の値はこの値以下)&lt;/td&gt;
+          &lt;td&gt;高負荷時の性能劣化を確認するため&lt;/td&gt;
       &lt;/tr&gt;
       &lt;tr&gt;
-          &lt;td&gt;99% Line&lt;/td&gt;
-          &lt;td&gt;Aggregate Report出力&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;99%Line&lt;/td&gt;
+          &lt;td&gt;90%タイル(99%の値はこの値以下)&lt;/td&gt;
+          &lt;td&gt;ごく一部の遅延リクエスト（ロングテール）の発生を確認するため&lt;/td&gt;
       &lt;/tr&gt;
       &lt;tr&gt;
           &lt;td&gt;Max&lt;/td&gt;
-          &lt;td&gt;Aggregate Report出力&lt;/td&gt;
           &lt;td&gt;最大応答時間(ms)&lt;/td&gt;
+          &lt;td&gt;最悪ケースの応答時間を把握するため&lt;/td&gt;
       &lt;/tr&gt;
       &lt;tr&gt;
-          &lt;td&gt;Error %&lt;/td&gt;
-          &lt;td&gt;Aggregate Report出力&lt;/td&gt;
+          &lt;td&gt;Error%&lt;/td&gt;
           &lt;td&gt;リクエストの失敗率&lt;/td&gt;
+          &lt;td&gt;サーバが正常にリクエストを処理できているかを確認するため&lt;/td&gt;
       &lt;/tr&gt;
       &lt;tr&gt;
           &lt;td&gt;Throughput&lt;/td&gt;
-          &lt;td&gt;Aggregate Report出力&lt;/td&gt;
           &lt;td&gt;秒間リクエスト数&lt;/td&gt;
-      &lt;/tr&gt;
-      &lt;tr&gt;
-          &lt;td&gt;BusyWorkers Avg&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-      &lt;/tr&gt;
-      &lt;tr&gt;
-          &lt;td&gt;IdleWorkers Avg&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-      &lt;/tr&gt;
-      &lt;tr&gt;
-          &lt;td&gt;Processes Avg&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-      &lt;/tr&gt;
-      &lt;tr&gt;
-          &lt;td&gt;Context Switch&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-      &lt;/tr&gt;
-      &lt;tr&gt;
-          &lt;td&gt;Run Queue&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;サーバ全体の処理能力を評価するため、本検証で最も重要な指標&lt;/td&gt;
       &lt;/tr&gt;
   &lt;/tbody&gt;
 &lt;/table&gt;
-&lt;h2&gt;6. 測定結果&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;6-測定結果&#34;&gt;&lt;/span&gt;
-    &lt;a href=&#34;#6-%e6%b8%ac%e5%ae%9a%e7%b5%90%e6%9e%9c&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h2&gt;&lt;table&gt;
+&lt;h3&gt;5.2.CPUリソース&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;52cpuリソース&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#52cpu%e3%83%aa%e3%82%bd%e3%83%bc%e3%82%b9&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h3&gt;&lt;table&gt;
   &lt;thead&gt;
       &lt;tr&gt;
-          &lt;th&gt;Test&lt;/th&gt;
+          &lt;th&gt;指標&lt;/th&gt;
+          &lt;th&gt;説明&lt;/th&gt;
+          &lt;th&gt;本検証で観測する理由&lt;/th&gt;
+          &lt;th&gt;収集コマンド&lt;/th&gt;
+          &lt;th&gt;備考&lt;/th&gt;
+      &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+      &lt;tr&gt;
+          &lt;td&gt;CPUAvg&lt;/td&gt;
+          &lt;td&gt;PU使用率の平均値&lt;/td&gt;
+          &lt;td&gt;サーバがCPU資源をどの程度使用しているかを把握し、Throughputとの相関を確認するため&lt;/td&gt;
+          &lt;td&gt;mpstat&lt;/td&gt;
+          &lt;td&gt;100-%idleの値を採取&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;ContextSwitch&lt;/td&gt;
+          &lt;td&gt;CPUが実行対象プロセスを切り替えた回数&lt;/td&gt;
+          &lt;td&gt;CPUスケジューラの負荷を評価し、CPUResourceContentionの発生状況を確認するため&lt;/td&gt;
+          &lt;td&gt;vmstat&lt;/td&gt;
+          &lt;td&gt;cs欄の値を採取&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;RunQueue&lt;/td&gt;
+          &lt;td&gt;CPU実行待ち状態のプロセス数&lt;/td&gt;
+          &lt;td&gt;CPU待ちが増加しているかを確認し、CPUResourceContentionを評価するため&lt;/td&gt;
+          &lt;td&gt;vmstat&lt;/td&gt;
+          &lt;td&gt;r欄の値を採取&lt;/td&gt;
+      &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h4&gt;5.2.1 vmstatデータ収集スクリプト&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;521-vmstatデータ収集スクリプト&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#521-vmstat%e3%83%87%e3%83%bc%e3%82%bf%e5%8f%8e%e9%9b%86%e3%82%b9%e3%82%af%e3%83%aa%e3%83%97%e3%83%88&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h4&gt;&lt;details class=&#34;hx:last-of-type:mb-0 hx:rounded-lg hx:bg-neutral-50 hx:dark:bg-neutral-800 hx:p-2 hx:mt-4 hx:group&#34; &gt;
+  &lt;summary class=&#34;hx:flex hx:items-center hx:cursor-pointer hx:select-none hx:list-none hx:p-1 hx:rounded-sm hx:transition-colors hx:hover:bg-gray-100 hx:dark:hover:bg-neutral-800 hx:before:mr-1 hx:before:inline-block hx:before:transition-transform hx:before:content-[&#39;&#39;] hx:dark:before:invert hx:rtl:before:rotate-180 hx:group-open:before:rotate-90&#34;&gt;
+    &lt;strong class=&#34;hx:text-lg&#34;&gt;スクリプト内容&lt;/strong&gt;
+  &lt;/summary&gt;
+  &lt;div class=&#34;hx:p-2 hx:overflow-hidden&#34;&gt;
+    &lt;div class=&#34;hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code&#34;&gt;
+
+&lt;div class=&#34;hextra-code-filename not-prose&#34; dir=&#34;auto&#34;&gt;vmstat_observe.sh&lt;/div&gt;&lt;div&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#!/bin/bash
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;printf &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;time,r,b,swpd,free,buff,cache,si,so,bi,bo,in,cs,us,sy,id,wa,st,gu\n&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;while&lt;/span&gt; true
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;do&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt; printf &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;%s,&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;$(&lt;/span&gt;date &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;+%Y-%m-%d %H:%M:%S&amp;#39;&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;)&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt; ; vmstat &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;2&lt;/span&gt; | tail -1 | tr -s &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39; &amp;#39;&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;,&amp;#39;&lt;/span&gt; | sed &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;s/^,//&amp;#39;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;done&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class=&#34;hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-8&#34;&gt;
+  &lt;button
+    class=&#34;hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50&#34;
+    title=&#34;Copy code&#34;
+    aria-label=&#34;Copy code&#34;
+    data-copied-label=&#34;Copied!&#34;
+  &gt;
+    &lt;div class=&#34;hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4&#34;&gt;&lt;/div&gt;
+&lt;div class=&#34;hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4&#34;&gt;&lt;/div&gt;
+  &lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+
+  &lt;/div&gt;
+&lt;/details&gt;
+
+&lt;details class=&#34;hx:last-of-type:mb-0 hx:rounded-lg hx:bg-neutral-50 hx:dark:bg-neutral-800 hx:p-2 hx:mt-4 hx:group&#34; &gt;
+  &lt;summary class=&#34;hx:flex hx:items-center hx:cursor-pointer hx:select-none hx:list-none hx:p-1 hx:rounded-sm hx:transition-colors hx:hover:bg-gray-100 hx:dark:hover:bg-neutral-800 hx:before:mr-1 hx:before:inline-block hx:before:transition-transform hx:before:content-[&#39;&#39;] hx:dark:before:invert hx:rtl:before:rotate-180 hx:group-open:before:rotate-90&#34;&gt;
+    &lt;strong class=&#34;hx:text-lg&#34;&gt;使用例&lt;/strong&gt;
+  &lt;/summary&gt;
+  &lt;div class=&#34;hx:p-2 hx:overflow-hidden&#34;&gt;
+    &lt;ul&gt;
+&lt;li&gt;スクリプトを実施しcsvファイルにリダイレクト&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class=&#34;hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code&#34;&gt;
+
+&lt;div&gt;&lt;pre&gt;&lt;code&gt;./vmstat_observe.sh &amp;gt; vmstat_test.csv&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class=&#34;hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0&#34;&gt;
+  &lt;button
+    class=&#34;hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50&#34;
+    title=&#34;Copy code&#34;
+    aria-label=&#34;Copy code&#34;
+    data-copied-label=&#34;Copied!&#34;
+  &gt;
+    &lt;div class=&#34;hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4&#34;&gt;&lt;/div&gt;
+&lt;div class=&#34;hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4&#34;&gt;&lt;/div&gt;
+  &lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;出力内容&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class=&#34;hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code&#34;&gt;
+
+&lt;div class=&#34;hextra-code-filename not-prose&#34; dir=&#34;auto&#34;&gt;vmstat_test.csv&lt;/div&gt;&lt;div&gt;&lt;pre&gt;&lt;code&gt;time,r,b,swpd,free,buff,cache,si,so,bi,bo,in,cs,us,sy,id,wa,st,gu
+2026-08-02 01:12:38,0,0,0,7054760,5236,364876,0,0,0,0,304,192,0,0,100,0,0,0
+2026-08-02 01:12:39,0,0,0,7054508,5236,364876,0,0,0,0,423,221,0,0,100,0,0,0
+2026-08-02 01:12:40,0,0,0,7054188,5236,364876,0,0,0,0,391,238,0,0,100,0,0,0
+2026-08-02 01:12:41,0,0,0,7054188,5236,364876,0,0,0,0,416,228,0,0,100,0,0,0&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class=&#34;hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-8&#34;&gt;
+  &lt;button
+    class=&#34;hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50&#34;
+    title=&#34;Copy code&#34;
+    aria-label=&#34;Copy code&#34;
+    data-copied-label=&#34;Copied!&#34;
+  &gt;
+    &lt;div class=&#34;hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4&#34;&gt;&lt;/div&gt;
+&lt;div class=&#34;hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4&#34;&gt;&lt;/div&gt;
+  &lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+
+  &lt;/div&gt;
+&lt;/details&gt;
+
+&lt;h4&gt;5.2.2　mpstatデータ収集スクリプト&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;522mpstatデータ収集スクリプト&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#522mpstat%e3%83%87%e3%83%bc%e3%82%bf%e5%8f%8e%e9%9b%86%e3%82%b9%e3%82%af%e3%83%aa%e3%83%97%e3%83%88&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h4&gt;&lt;details class=&#34;hx:last-of-type:mb-0 hx:rounded-lg hx:bg-neutral-50 hx:dark:bg-neutral-800 hx:p-2 hx:mt-4 hx:group&#34; &gt;
+  &lt;summary class=&#34;hx:flex hx:items-center hx:cursor-pointer hx:select-none hx:list-none hx:p-1 hx:rounded-sm hx:transition-colors hx:hover:bg-gray-100 hx:dark:hover:bg-neutral-800 hx:before:mr-1 hx:before:inline-block hx:before:transition-transform hx:before:content-[&#39;&#39;] hx:dark:before:invert hx:rtl:before:rotate-180 hx:group-open:before:rotate-90&#34;&gt;
+    &lt;strong class=&#34;hx:text-lg&#34;&gt;スクリプト内容&lt;/strong&gt;
+  &lt;/summary&gt;
+  &lt;div class=&#34;hx:p-2 hx:overflow-hidden&#34;&gt;
+    &lt;div class=&#34;hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code&#34;&gt;
+
+&lt;div class=&#34;hextra-code-filename not-prose&#34; dir=&#34;auto&#34;&gt;mpstat_observe.sh&lt;/div&gt;&lt;div&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#!/bin/bash
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;printf &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;time,CPU,%%usr,%%nice,%%sys,%%iowait,%%irq,%%soft,%%steal,%%guest,%%gnice,%%idle\n&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;while&lt;/span&gt; true
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;do&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;mpstat &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt; | head -4 | tail -1 | tr -s &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39; &amp;#39;&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;,&amp;#39;&lt;/span&gt; | sed &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;s/^,//&amp;#39;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;done&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class=&#34;hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-8&#34;&gt;
+  &lt;button
+    class=&#34;hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50&#34;
+    title=&#34;Copy code&#34;
+    aria-label=&#34;Copy code&#34;
+    data-copied-label=&#34;Copied!&#34;
+  &gt;
+    &lt;div class=&#34;hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4&#34;&gt;&lt;/div&gt;
+&lt;div class=&#34;hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4&#34;&gt;&lt;/div&gt;
+  &lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+
+  &lt;/div&gt;
+&lt;/details&gt;
+
+&lt;details class=&#34;hx:last-of-type:mb-0 hx:rounded-lg hx:bg-neutral-50 hx:dark:bg-neutral-800 hx:p-2 hx:mt-4 hx:group&#34; &gt;
+  &lt;summary class=&#34;hx:flex hx:items-center hx:cursor-pointer hx:select-none hx:list-none hx:p-1 hx:rounded-sm hx:transition-colors hx:hover:bg-gray-100 hx:dark:hover:bg-neutral-800 hx:before:mr-1 hx:before:inline-block hx:before:transition-transform hx:before:content-[&#39;&#39;] hx:dark:before:invert hx:rtl:before:rotate-180 hx:group-open:before:rotate-90&#34;&gt;
+    &lt;strong class=&#34;hx:text-lg&#34;&gt;使用例&lt;/strong&gt;
+  &lt;/summary&gt;
+  &lt;div class=&#34;hx:p-2 hx:overflow-hidden&#34;&gt;
+    &lt;ul&gt;
+&lt;li&gt;スクリプトを実施しcsvファイルにリダイレクト&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class=&#34;hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code&#34;&gt;
+
+&lt;div&gt;&lt;pre&gt;&lt;code&gt;./mpstat_observe.sh &amp;gt; mpstat_test.csv&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class=&#34;hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0&#34;&gt;
+  &lt;button
+    class=&#34;hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50&#34;
+    title=&#34;Copy code&#34;
+    aria-label=&#34;Copy code&#34;
+    data-copied-label=&#34;Copied!&#34;
+  &gt;
+    &lt;div class=&#34;hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4&#34;&gt;&lt;/div&gt;
+&lt;div class=&#34;hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4&#34;&gt;&lt;/div&gt;
+  &lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;出力内容&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class=&#34;hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code&#34;&gt;
+
+&lt;div class=&#34;hextra-code-filename not-prose&#34; dir=&#34;auto&#34;&gt;mpstat_test.csv&lt;/div&gt;&lt;div&gt;&lt;pre&gt;&lt;code&gt;time,CPU,%usr,%nice,%sys,%iowait,%irq,%soft,%steal,%guest,%gnice,%idle
+01時15分37秒,all,0.00,0.00,0.00,0.00,0.25,0.00,0.00,0.00,0.00,99.75
+01時15分38秒,all,0.00,0.00,0.00,0.00,0.13,0.00,0.00,0.00,0.00,99.87
+01時15分39秒,all,0.00,0.00,0.00,0.00,0.19,0.00,0.00,0.00,0.00,99.81
+01時15分40秒,all,0.00,0.00,0.06,0.00,0.19,0.06,0.00,0.00,0.00,99.69&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class=&#34;hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-8&#34;&gt;
+  &lt;button
+    class=&#34;hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50&#34;
+    title=&#34;Copy code&#34;
+    aria-label=&#34;Copy code&#34;
+    data-copied-label=&#34;Copied!&#34;
+  &gt;
+    &lt;div class=&#34;hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4&#34;&gt;&lt;/div&gt;
+&lt;div class=&#34;hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4&#34;&gt;&lt;/div&gt;
+  &lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+
+  &lt;/div&gt;
+&lt;/details&gt;
+
+&lt;h3&gt;5.3.Apache状態&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;53apache状態&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#53apache%e7%8a%b6%e6%85%8b&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h3&gt;&lt;table&gt;
+  &lt;thead&gt;
+      &lt;tr&gt;
+          &lt;th&gt;指標&lt;/th&gt;
+          &lt;th&gt;説明&lt;/th&gt;
+          &lt;th&gt;本検証で観測する理由&lt;/th&gt;
+      &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+      &lt;tr&gt;
+          &lt;td&gt;BusyWorkersAvg&lt;/td&gt;
+          &lt;td&gt;リクエスト処理中のApacheWorker数の平均値&lt;/td&gt;
+          &lt;td&gt;Worker不足がボトルネックとなっているかを確認するため&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;IdleWorkersAvg&lt;/td&gt;
+          &lt;td&gt;待機中のApacheWorker数の平均値&lt;/td&gt;
+          &lt;td&gt;Workerに余裕が残っているかを確認するため&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;ProcessesAvg&lt;/td&gt;
+          &lt;td&gt;Apacheプロセス数の平均値&lt;/td&gt;
+          &lt;td&gt;MPMEventが必要に応じてプロセスを増減させているかを確認するため&lt;/td&gt;
+      &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h4&gt;5.3.1.Apache server-statusデータ収集スクリプト&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;531apache-server-statusデータ収集スクリプト&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#531apache-server-status%e3%83%87%e3%83%bc%e3%82%bf%e5%8f%8e%e9%9b%86%e3%82%b9%e3%82%af%e3%83%aa%e3%83%97%e3%83%88&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h4&gt;&lt;div class=&#34;hx:overflow-x-auto hx:mt-6 hx:flex hx:rounded-lg hx:border hx:py-2 hx:ltr:pr-4 hx:rtl:pl-4 hx:contrast-more:border-current hx:contrast-more:dark:border-current hx:border-blue-200 hx:bg-blue-100 hx:text-blue-900 hx:dark:border-blue-200/30 hx:dark:bg-blue-900/30 hx:dark:text-blue-200&#34;&gt;
+  &lt;div class=&#34;hx:ltr:pl-3 hx:ltr:pr-2 hx:rtl:pr-3 hx:rtl:pl-2&#34;&gt;&lt;svg height=1.2em class=&#34;hx:inline-block hx:align-middle&#34; xmlns=&#34;http://www.w3.org/2000/svg&#34; fill=&#34;none&#34; viewBox=&#34;0 0 24 24&#34; stroke-width=&#34;2&#34; stroke=&#34;currentColor&#34; aria-hidden=&#34;true&#34;&gt;&lt;path stroke-linecap=&#34;round&#34; stroke-linejoin=&#34;round&#34; d=&#34;M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z&#34;/&gt;&lt;/svg&gt;&lt;/div&gt;
+
+  &lt;div class=&#34;hx:w-full hx:min-w-0 hx:leading-7&#34;&gt;
+    &lt;div class=&#34;hx:mt-6 hx:leading-7 hx:first:mt-0&#34;&gt;&lt;p&gt;Apacheの状態監視には、Apache標準モジュールmod_statusが提供するserver-statusを利用しました。本検証では、以下のコマンドを一定間隔で実行し、Apache内部の状態を収集しました。&lt;/p&gt;
+&lt;div class=&#34;hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code&#34;&gt;
+
+&lt;div&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;curl -s localhost/server-status?auto&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class=&#34;hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0&#34;&gt;
+  &lt;button
+    class=&#34;hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50&#34;
+    title=&#34;Copy code&#34;
+    aria-label=&#34;Copy code&#34;
+    data-copied-label=&#34;Copied!&#34;
+  &gt;
+    &lt;div class=&#34;hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4&#34;&gt;&lt;/div&gt;
+&lt;div class=&#34;hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4&#34;&gt;&lt;/div&gt;
+  &lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;【参考元】&lt;a href=&#34;https://performance.oreda.net/middleware/web/server-status&#34;title=&#34;Apacheのserver-statusでリソース監視&#34;target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;Apacheのserver-statusでリソース監視&lt;/a&gt;&lt;/p&gt;
+&lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;details class=&#34;hx:last-of-type:mb-0 hx:rounded-lg hx:bg-neutral-50 hx:dark:bg-neutral-800 hx:p-2 hx:mt-4 hx:group&#34; &gt;
+  &lt;summary class=&#34;hx:flex hx:items-center hx:cursor-pointer hx:select-none hx:list-none hx:p-1 hx:rounded-sm hx:transition-colors hx:hover:bg-gray-100 hx:dark:hover:bg-neutral-800 hx:before:mr-1 hx:before:inline-block hx:before:transition-transform hx:before:content-[&#39;&#39;] hx:dark:before:invert hx:rtl:before:rotate-180 hx:group-open:before:rotate-90&#34;&gt;
+    &lt;strong class=&#34;hx:text-lg&#34;&gt;スクリプト内容&lt;/strong&gt;
+  &lt;/summary&gt;
+  &lt;div class=&#34;hx:p-2 hx:overflow-hidden&#34;&gt;
+    &lt;div class=&#34;hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code&#34;&gt;
+
+&lt;div class=&#34;hextra-code-filename not-prose&#34; dir=&#34;auto&#34;&gt;apache_observe.sh&lt;/div&gt;&lt;div&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#!/bin/bash
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;printf &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;time,BusyWorkers,IdleWorkers,Processes\n&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;while&lt;/span&gt; true
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;do&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  printf &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;%s,&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;$(&lt;/span&gt;date &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;+%Y-%m-%d %H:%M:%S&amp;#39;&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;)&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  curl -s localhost/server-status?auto&lt;span style=&#34;color:#ae81ff&#34;&gt;\
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;       | awk &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;/BusyWorkers/ { b=$2 }
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;              /IdleWorkers/ { i=$2 }
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;              /Processes/   { p=$2 }
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;              END {
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;              printf &amp;#34;%s,%s,%s\n&amp;#34;,b,i,p
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;              }&amp;#39;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;   sleep &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;done&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class=&#34;hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-8&#34;&gt;
+  &lt;button
+    class=&#34;hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50&#34;
+    title=&#34;Copy code&#34;
+    aria-label=&#34;Copy code&#34;
+    data-copied-label=&#34;Copied!&#34;
+  &gt;
+    &lt;div class=&#34;hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4&#34;&gt;&lt;/div&gt;
+&lt;div class=&#34;hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4&#34;&gt;&lt;/div&gt;
+  &lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+
+  &lt;/div&gt;
+&lt;/details&gt;
+
+&lt;details class=&#34;hx:last-of-type:mb-0 hx:rounded-lg hx:bg-neutral-50 hx:dark:bg-neutral-800 hx:p-2 hx:mt-4 hx:group&#34; &gt;
+  &lt;summary class=&#34;hx:flex hx:items-center hx:cursor-pointer hx:select-none hx:list-none hx:p-1 hx:rounded-sm hx:transition-colors hx:hover:bg-gray-100 hx:dark:hover:bg-neutral-800 hx:before:mr-1 hx:before:inline-block hx:before:transition-transform hx:before:content-[&#39;&#39;] hx:dark:before:invert hx:rtl:before:rotate-180 hx:group-open:before:rotate-90&#34;&gt;
+    &lt;strong class=&#34;hx:text-lg&#34;&gt;使用例&lt;/strong&gt;
+  &lt;/summary&gt;
+  &lt;div class=&#34;hx:p-2 hx:overflow-hidden&#34;&gt;
+    &lt;ul&gt;
+&lt;li&gt;スクリプトを実施しcsvファイルにリダイレクト&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class=&#34;hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code&#34;&gt;
+
+&lt;div&gt;&lt;pre&gt;&lt;code&gt;./apache_observe.sh &amp;gt; apache_test.csv&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class=&#34;hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0&#34;&gt;
+  &lt;button
+    class=&#34;hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50&#34;
+    title=&#34;Copy code&#34;
+    aria-label=&#34;Copy code&#34;
+    data-copied-label=&#34;Copied!&#34;
+  &gt;
+    &lt;div class=&#34;hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4&#34;&gt;&lt;/div&gt;
+&lt;div class=&#34;hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4&#34;&gt;&lt;/div&gt;
+  &lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;出力内容&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class=&#34;hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code&#34;&gt;
+
+&lt;div class=&#34;hextra-code-filename not-prose&#34; dir=&#34;auto&#34;&gt;apache_test.csv&lt;/div&gt;&lt;div&gt;&lt;pre&gt;&lt;code&gt;time,BusyWorkers,IdleWorkers,Processes
+2026-08-02 01:51:53,1,74,3
+2026-08-02 01:51:54,1,74,3
+2026-08-02 01:51:55,1,74,3
+2026-08-02 01:51:56,1,74,3
+2026-08-02 01:51:57,1,74,3
+2026-08-02 01:51:58,1,74,3
+2026-08-02 01:51:59,1,74,3
+2026-08-02 01:52:00,1,74,3&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class=&#34;hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-8&#34;&gt;
+  &lt;button
+    class=&#34;hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50&#34;
+    title=&#34;Copy code&#34;
+    aria-label=&#34;Copy code&#34;
+    data-copied-label=&#34;Copied!&#34;
+  &gt;
+    &lt;div class=&#34;hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4&#34;&gt;&lt;/div&gt;
+&lt;div class=&#34;hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4&#34;&gt;&lt;/div&gt;
+  &lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+
+  &lt;/div&gt;
+&lt;/details&gt;
+
+&lt;h2&gt;6. 測定結果&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;6-測定結果&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#6-%e6%b8%ac%e5%ae%9a%e7%b5%90%e6%9e%9c&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;測定したデータを集計し、下記のテーブルにまとめました。
+&lt;details class=&#34;hx:last-of-type:mb-0 hx:rounded-lg hx:bg-neutral-50 hx:dark:bg-neutral-800 hx:p-2 hx:mt-4 hx:group&#34; &gt;
+  &lt;summary class=&#34;hx:flex hx:items-center hx:cursor-pointer hx:select-none hx:list-none hx:p-1 hx:rounded-sm hx:transition-colors hx:hover:bg-gray-100 hx:dark:hover:bg-neutral-800 hx:before:mr-1 hx:before:inline-block hx:before:transition-transform hx:before:content-[&#39;&#39;] hx:dark:before:invert hx:rtl:before:rotate-180 hx:group-open:before:rotate-90&#34;&gt;
+    &lt;strong class=&#34;hx:text-lg&#34;&gt;データテーブルを展開&lt;/strong&gt;
+  &lt;/summary&gt;
+  &lt;div class=&#34;hx:p-2 hx:overflow-hidden&#34;&gt;
+    &lt;table&gt;
+  &lt;thead&gt;
+      &lt;tr&gt;
+          &lt;th&gt;テストNo.&lt;/th&gt;
           &lt;th&gt;Users&lt;/th&gt;
           &lt;th&gt;CPU Avg&lt;/th&gt;
           &lt;th&gt;Average&lt;/th&gt;
@@ -336,171 +671,665 @@ Apache HTTPサーバの性能限界を調査しました。&lt;/p&gt;
       &lt;tr&gt;
           &lt;td&gt;#1&lt;/td&gt;
           &lt;td&gt;5&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;18.58%&lt;/td&gt;
+          &lt;td&gt;0&lt;/td&gt;
+          &lt;td&gt;1&lt;/td&gt;
+          &lt;td&gt;2&lt;/td&gt;
+          &lt;td&gt;2&lt;/td&gt;
+          &lt;td&gt;3&lt;/td&gt;
+          &lt;td&gt;16&lt;/td&gt;
+          &lt;td&gt;0.00%&lt;/td&gt;
+          &lt;td&gt;4714.02&lt;/td&gt;
+          &lt;td&gt;3.31&lt;/td&gt;
+          &lt;td&gt;96.69&lt;/td&gt;
+          &lt;td&gt;4.00&lt;/td&gt;
+          &lt;td&gt;47304.27&lt;/td&gt;
+          &lt;td&gt;3.18&lt;/td&gt;
       &lt;/tr&gt;
       &lt;tr&gt;
           &lt;td&gt;#2&lt;/td&gt;
           &lt;td&gt;10&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;32.70%&lt;/td&gt;
+          &lt;td&gt;1&lt;/td&gt;
+          &lt;td&gt;1&lt;/td&gt;
+          &lt;td&gt;2&lt;/td&gt;
+          &lt;td&gt;2&lt;/td&gt;
+          &lt;td&gt;2&lt;/td&gt;
+          &lt;td&gt;24&lt;/td&gt;
+          &lt;td&gt;0.00%&lt;/td&gt;
+          &lt;td&gt;9034.29&lt;/td&gt;
+          &lt;td&gt;5.83&lt;/td&gt;
+          &lt;td&gt;94.17&lt;/td&gt;
+          &lt;td&gt;4.00&lt;/td&gt;
+          &lt;td&gt;86387.39&lt;/td&gt;
+          &lt;td&gt;6.63&lt;/td&gt;
       &lt;/tr&gt;
       &lt;tr&gt;
           &lt;td&gt;#3&lt;/td&gt;
           &lt;td&gt;15&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;42.77%&lt;/td&gt;
+          &lt;td&gt;1&lt;/td&gt;
+          &lt;td&gt;1&lt;/td&gt;
+          &lt;td&gt;2&lt;/td&gt;
+          &lt;td&gt;2&lt;/td&gt;
+          &lt;td&gt;3&lt;/td&gt;
+          &lt;td&gt;44&lt;/td&gt;
+          &lt;td&gt;0.00%&lt;/td&gt;
+          &lt;td&gt;10927.35&lt;/td&gt;
+          &lt;td&gt;7.99&lt;/td&gt;
+          &lt;td&gt;92.01&lt;/td&gt;
+          &lt;td&gt;4.00&lt;/td&gt;
+          &lt;td&gt;100430.94&lt;/td&gt;
+          &lt;td&gt;10.78&lt;/td&gt;
       &lt;/tr&gt;
       &lt;tr&gt;
           &lt;td&gt;#4&lt;/td&gt;
           &lt;td&gt;20&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;48.00%&lt;/td&gt;
+          &lt;td&gt;1&lt;/td&gt;
+          &lt;td&gt;2&lt;/td&gt;
+          &lt;td&gt;2&lt;/td&gt;
+          &lt;td&gt;3&lt;/td&gt;
+          &lt;td&gt;4&lt;/td&gt;
+          &lt;td&gt;75&lt;/td&gt;
+          &lt;td&gt;0.00%&lt;/td&gt;
+          &lt;td&gt;11226.24&lt;/td&gt;
+          &lt;td&gt;9.81&lt;/td&gt;
+          &lt;td&gt;90.19&lt;/td&gt;
+          &lt;td&gt;4.00&lt;/td&gt;
+          &lt;td&gt;93014.92&lt;/td&gt;
+          &lt;td&gt;12.15&lt;/td&gt;
       &lt;/tr&gt;
       &lt;tr&gt;
           &lt;td&gt;#5&lt;/td&gt;
           &lt;td&gt;25&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;52.27%&lt;/td&gt;
+          &lt;td&gt;1&lt;/td&gt;
+          &lt;td&gt;2&lt;/td&gt;
+          &lt;td&gt;3&lt;/td&gt;
+          &lt;td&gt;3&lt;/td&gt;
+          &lt;td&gt;5&lt;/td&gt;
+          &lt;td&gt;54&lt;/td&gt;
+          &lt;td&gt;0.00%&lt;/td&gt;
+          &lt;td&gt;12068.60&lt;/td&gt;
+          &lt;td&gt;10.90&lt;/td&gt;
+          &lt;td&gt;89.10&lt;/td&gt;
+          &lt;td&gt;4.00&lt;/td&gt;
+          &lt;td&gt;98178.16&lt;/td&gt;
+          &lt;td&gt;17.93&lt;/td&gt;
       &lt;/tr&gt;
       &lt;tr&gt;
           &lt;td&gt;#6&lt;/td&gt;
           &lt;td&gt;30&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;55.71%&lt;/td&gt;
+          &lt;td&gt;2&lt;/td&gt;
+          &lt;td&gt;2&lt;/td&gt;
+          &lt;td&gt;3&lt;/td&gt;
+          &lt;td&gt;4&lt;/td&gt;
+          &lt;td&gt;6&lt;/td&gt;
+          &lt;td&gt;78&lt;/td&gt;
+          &lt;td&gt;0.00%&lt;/td&gt;
+          &lt;td&gt;12503.02&lt;/td&gt;
+          &lt;td&gt;12.83&lt;/td&gt;
+          &lt;td&gt;104.42&lt;/td&gt;
+          &lt;td&gt;5.00&lt;/td&gt;
+          &lt;td&gt;94855.75&lt;/td&gt;
+          &lt;td&gt;21.03&lt;/td&gt;
       &lt;/tr&gt;
       &lt;tr&gt;
-          &lt;td&gt;：&lt;/td&gt;
-          &lt;td&gt;：&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
-          &lt;td&gt;&lt;/td&gt;
+          &lt;td&gt;#7&lt;/td&gt;
+          &lt;td&gt;40&lt;/td&gt;
+          &lt;td&gt;61.63%&lt;/td&gt;
+          &lt;td&gt;2&lt;/td&gt;
+          &lt;td&gt;3&lt;/td&gt;
+          &lt;td&gt;4&lt;/td&gt;
+          &lt;td&gt;5&lt;/td&gt;
+          &lt;td&gt;7&lt;/td&gt;
+          &lt;td&gt;64&lt;/td&gt;
+          &lt;td&gt;0.00%&lt;/td&gt;
+          &lt;td&gt;13862.91&lt;/td&gt;
+          &lt;td&gt;14.26&lt;/td&gt;
+          &lt;td&gt;110.74&lt;/td&gt;
+          &lt;td&gt;5.00&lt;/td&gt;
+          &lt;td&gt;100996.88&lt;/td&gt;
+          &lt;td&gt;30.86&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;#8&lt;/td&gt;
+          &lt;td&gt;50&lt;/td&gt;
+          &lt;td&gt;65.32%&lt;/td&gt;
+          &lt;td&gt;3&lt;/td&gt;
+          &lt;td&gt;3&lt;/td&gt;
+          &lt;td&gt;5&lt;/td&gt;
+          &lt;td&gt;6&lt;/td&gt;
+          &lt;td&gt;9&lt;/td&gt;
+          &lt;td&gt;78&lt;/td&gt;
+          &lt;td&gt;0.00%&lt;/td&gt;
+          &lt;td&gt;13787.29&lt;/td&gt;
+          &lt;td&gt;17.10&lt;/td&gt;
+          &lt;td&gt;107.90&lt;/td&gt;
+          &lt;td&gt;5.00&lt;/td&gt;
+          &lt;td&gt;104172.27&lt;/td&gt;
+          &lt;td&gt;35.14&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;#9&lt;/td&gt;
+          &lt;td&gt;60&lt;/td&gt;
+          &lt;td&gt;68.58%&lt;/td&gt;
+          &lt;td&gt;3&lt;/td&gt;
+          &lt;td&gt;3&lt;/td&gt;
+          &lt;td&gt;6&lt;/td&gt;
+          &lt;td&gt;7&lt;/td&gt;
+          &lt;td&gt;10&lt;/td&gt;
+          &lt;td&gt;142&lt;/td&gt;
+          &lt;td&gt;0.00%&lt;/td&gt;
+          &lt;td&gt;15069.72&lt;/td&gt;
+          &lt;td&gt;20.65&lt;/td&gt;
+          &lt;td&gt;110.06&lt;/td&gt;
+          &lt;td&gt;5.23&lt;/td&gt;
+          &lt;td&gt;108101.20&lt;/td&gt;
+          &lt;td&gt;37.11&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;#10&lt;/td&gt;
+          &lt;td&gt;70&lt;/td&gt;
+          &lt;td&gt;67.00%&lt;/td&gt;
+          &lt;td&gt;5&lt;/td&gt;
+          &lt;td&gt;5&lt;/td&gt;
+          &lt;td&gt;8&lt;/td&gt;
+          &lt;td&gt;9&lt;/td&gt;
+          &lt;td&gt;15&lt;/td&gt;
+          &lt;td&gt;103&lt;/td&gt;
+          &lt;td&gt;0.00%&lt;/td&gt;
+          &lt;td&gt;12685.72&lt;/td&gt;
+          &lt;td&gt;23.33&lt;/td&gt;
+          &lt;td&gt;126.67&lt;/td&gt;
+          &lt;td&gt;6.00&lt;/td&gt;
+          &lt;td&gt;83970.42&lt;/td&gt;
+          &lt;td&gt;37.79&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;#11&lt;/td&gt;
+          &lt;td&gt;80&lt;/td&gt;
+          &lt;td&gt;69.61%&lt;/td&gt;
+          &lt;td&gt;5&lt;/td&gt;
+          &lt;td&gt;5&lt;/td&gt;
+          &lt;td&gt;8&lt;/td&gt;
+          &lt;td&gt;10&lt;/td&gt;
+          &lt;td&gt;16&lt;/td&gt;
+          &lt;td&gt;232&lt;/td&gt;
+          &lt;td&gt;0.01%&lt;/td&gt;
+          &lt;td&gt;13811.82&lt;/td&gt;
+          &lt;td&gt;24.94&lt;/td&gt;
+          &lt;td&gt;138.58&lt;/td&gt;
+          &lt;td&gt;6.54&lt;/td&gt;
+          &lt;td&gt;97665.70&lt;/td&gt;
+          &lt;td&gt;40.94&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;#12&lt;/td&gt;
+          &lt;td&gt;100&lt;/td&gt;
+          &lt;td&gt;70.00%&lt;/td&gt;
+          &lt;td&gt;7&lt;/td&gt;
+          &lt;td&gt;7&lt;/td&gt;
+          &lt;td&gt;11&lt;/td&gt;
+          &lt;td&gt;14&lt;/td&gt;
+          &lt;td&gt;24&lt;/td&gt;
+          &lt;td&gt;100&lt;/td&gt;
+          &lt;td&gt;0.02%&lt;/td&gt;
+          &lt;td&gt;12709.22&lt;/td&gt;
+          &lt;td&gt;28.87&lt;/td&gt;
+          &lt;td&gt;146.13&lt;/td&gt;
+          &lt;td&gt;7.00&lt;/td&gt;
+          &lt;td&gt;82559.53&lt;/td&gt;
+          &lt;td&gt;48.14&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;#13&lt;/td&gt;
+          &lt;td&gt;120&lt;/td&gt;
+          &lt;td&gt;72.18%&lt;/td&gt;
+          &lt;td&gt;8&lt;/td&gt;
+          &lt;td&gt;7&lt;/td&gt;
+          &lt;td&gt;12&lt;/td&gt;
+          &lt;td&gt;15&lt;/td&gt;
+          &lt;td&gt;25&lt;/td&gt;
+          &lt;td&gt;124&lt;/td&gt;
+          &lt;td&gt;0.05%&lt;/td&gt;
+          &lt;td&gt;13926.25&lt;/td&gt;
+          &lt;td&gt;28.39&lt;/td&gt;
+          &lt;td&gt;146.61&lt;/td&gt;
+          &lt;td&gt;7.00&lt;/td&gt;
+          &lt;td&gt;87065.47&lt;/td&gt;
+          &lt;td&gt;48.83&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;#14&lt;/td&gt;
+          &lt;td&gt;150&lt;/td&gt;
+          &lt;td&gt;72.42%&lt;/td&gt;
+          &lt;td&gt;10&lt;/td&gt;
+          &lt;td&gt;9&lt;/td&gt;
+          &lt;td&gt;15&lt;/td&gt;
+          &lt;td&gt;18&lt;/td&gt;
+          &lt;td&gt;32&lt;/td&gt;
+          &lt;td&gt;169&lt;/td&gt;
+          &lt;td&gt;0.10%&lt;/td&gt;
+          &lt;td&gt;13882.26&lt;/td&gt;
+          &lt;td&gt;35.01&lt;/td&gt;
+          &lt;td&gt;178.80&lt;/td&gt;
+          &lt;td&gt;8.55&lt;/td&gt;
+          &lt;td&gt;86497.71&lt;/td&gt;
+          &lt;td&gt;46.61&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;#15&lt;/td&gt;
+          &lt;td&gt;200&lt;/td&gt;
+          &lt;td&gt;74.09%&lt;/td&gt;
+          &lt;td&gt;13&lt;/td&gt;
+          &lt;td&gt;13&lt;/td&gt;
+          &lt;td&gt;19&lt;/td&gt;
+          &lt;td&gt;24&lt;/td&gt;
+          &lt;td&gt;41&lt;/td&gt;
+          &lt;td&gt;181&lt;/td&gt;
+          &lt;td&gt;0.21%&lt;/td&gt;
+          &lt;td&gt;13892.22&lt;/td&gt;
+          &lt;td&gt;43.53&lt;/td&gt;
+          &lt;td&gt;202.92&lt;/td&gt;
+          &lt;td&gt;9.86&lt;/td&gt;
+          &lt;td&gt;86053.27&lt;/td&gt;
+          &lt;td&gt;62.80&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;#16&lt;/td&gt;
+          &lt;td&gt;250&lt;/td&gt;
+          &lt;td&gt;74.79%&lt;/td&gt;
+          &lt;td&gt;16&lt;/td&gt;
+          &lt;td&gt;15&lt;/td&gt;
+          &lt;td&gt;22&lt;/td&gt;
+          &lt;td&gt;27&lt;/td&gt;
+          &lt;td&gt;44&lt;/td&gt;
+          &lt;td&gt;180&lt;/td&gt;
+          &lt;td&gt;0.63%&lt;/td&gt;
+          &lt;td&gt;14624.50&lt;/td&gt;
+          &lt;td&gt;47.46&lt;/td&gt;
+          &lt;td&gt;207.71&lt;/td&gt;
+          &lt;td&gt;10.25&lt;/td&gt;
+          &lt;td&gt;84443.57&lt;/td&gt;
+          &lt;td&gt;61.65&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;#17&lt;/td&gt;
+          &lt;td&gt;300&lt;/td&gt;
+          &lt;td&gt;75.15%&lt;/td&gt;
+          &lt;td&gt;19&lt;/td&gt;
+          &lt;td&gt;18&lt;/td&gt;
+          &lt;td&gt;28&lt;/td&gt;
+          &lt;td&gt;35&lt;/td&gt;
+          &lt;td&gt;53&lt;/td&gt;
+          &lt;td&gt;1053&lt;/td&gt;
+          &lt;td&gt;2.65%&lt;/td&gt;
+          &lt;td&gt;14420.30&lt;/td&gt;
+          &lt;td&gt;45.60&lt;/td&gt;
+          &lt;td&gt;210.56&lt;/td&gt;
+          &lt;td&gt;10.30&lt;/td&gt;
+          &lt;td&gt;91732.42&lt;/td&gt;
+          &lt;td&gt;56.50&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;#18&lt;/td&gt;
+          &lt;td&gt;350&lt;/td&gt;
+          &lt;td&gt;73.43%&lt;/td&gt;
+          &lt;td&gt;24&lt;/td&gt;
+          &lt;td&gt;22&lt;/td&gt;
+          &lt;td&gt;39&lt;/td&gt;
+          &lt;td&gt;47&lt;/td&gt;
+          &lt;td&gt;68&lt;/td&gt;
+          &lt;td&gt;1110&lt;/td&gt;
+          &lt;td&gt;5.68%&lt;/td&gt;
+          &lt;td&gt;13614.52&lt;/td&gt;
+          &lt;td&gt;38.46&lt;/td&gt;
+          &lt;td&gt;214.29&lt;/td&gt;
+          &lt;td&gt;10.14&lt;/td&gt;
+          &lt;td&gt;82913.90&lt;/td&gt;
+          &lt;td&gt;57.92&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;#19&lt;/td&gt;
+          &lt;td&gt;400&lt;/td&gt;
+          &lt;td&gt;72.25%&lt;/td&gt;
+          &lt;td&gt;28&lt;/td&gt;
+          &lt;td&gt;25&lt;/td&gt;
+          &lt;td&gt;47&lt;/td&gt;
+          &lt;td&gt;56&lt;/td&gt;
+          &lt;td&gt;78&lt;/td&gt;
+          &lt;td&gt;1087&lt;/td&gt;
+          &lt;td&gt;8.29%&lt;/td&gt;
+          &lt;td&gt;13496.65&lt;/td&gt;
+          &lt;td&gt;40.23&lt;/td&gt;
+          &lt;td&gt;216.81&lt;/td&gt;
+          &lt;td&gt;10.39&lt;/td&gt;
+          &lt;td&gt;80243.38&lt;/td&gt;
+          &lt;td&gt;59.48&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;#20&lt;/td&gt;
+          &lt;td&gt;500&lt;/td&gt;
+          &lt;td&gt;70.62%&lt;/td&gt;
+          &lt;td&gt;38&lt;/td&gt;
+          &lt;td&gt;33&lt;/td&gt;
+          &lt;td&gt;68&lt;/td&gt;
+          &lt;td&gt;83&lt;/td&gt;
+          &lt;td&gt;114&lt;/td&gt;
+          &lt;td&gt;71288&lt;/td&gt;
+          &lt;td&gt;13.62%&lt;/td&gt;
+          &lt;td&gt;9414.63&lt;/td&gt;
+          &lt;td&gt;45.78&lt;/td&gt;
+          &lt;td&gt;220.07&lt;/td&gt;
+          &lt;td&gt;10.81&lt;/td&gt;
+          &lt;td&gt;79306.95&lt;/td&gt;
+          &lt;td&gt;59.50&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;#21&lt;/td&gt;
+          &lt;td&gt;600&lt;/td&gt;
+          &lt;td&gt;66.40%&lt;/td&gt;
+          &lt;td&gt;50&lt;/td&gt;
+          &lt;td&gt;40&lt;/td&gt;
+          &lt;td&gt;91&lt;/td&gt;
+          &lt;td&gt;109&lt;/td&gt;
+          &lt;td&gt;154&lt;/td&gt;
+          &lt;td&gt;5137&lt;/td&gt;
+          &lt;td&gt;17.85%&lt;/td&gt;
+          &lt;td&gt;11327.93&lt;/td&gt;
+          &lt;td&gt;50.36&lt;/td&gt;
+          &lt;td&gt;209.45&lt;/td&gt;
+          &lt;td&gt;10.56&lt;/td&gt;
+          &lt;td&gt;74377.79&lt;/td&gt;
+          &lt;td&gt;56.63&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;#22&lt;/td&gt;
+          &lt;td&gt;700&lt;/td&gt;
+          &lt;td&gt;65.24%&lt;/td&gt;
+          &lt;td&gt;64&lt;/td&gt;
+          &lt;td&gt;49&lt;/td&gt;
+          &lt;td&gt;111&lt;/td&gt;
+          &lt;td&gt;131&lt;/td&gt;
+          &lt;td&gt;308&lt;/td&gt;
+          &lt;td&gt;197099&lt;/td&gt;
+          &lt;td&gt;21.53%&lt;/td&gt;
+          &lt;td&gt;8761.66&lt;/td&gt;
+          &lt;td&gt;64.56&lt;/td&gt;
+          &lt;td&gt;211.47&lt;/td&gt;
+          &lt;td&gt;11.28&lt;/td&gt;
+          &lt;td&gt;67753.13&lt;/td&gt;
+          &lt;td&gt;54.81&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;#23&lt;/td&gt;
+          &lt;td&gt;800&lt;/td&gt;
+          &lt;td&gt;64.75%&lt;/td&gt;
+          &lt;td&gt;74&lt;/td&gt;
+          &lt;td&gt;52&lt;/td&gt;
+          &lt;td&gt;119&lt;/td&gt;
+          &lt;td&gt;147&lt;/td&gt;
+          &lt;td&gt;808&lt;/td&gt;
+          &lt;td&gt;8074&lt;/td&gt;
+          &lt;td&gt;21.86%&lt;/td&gt;
+          &lt;td&gt;10338.35&lt;/td&gt;
+          &lt;td&gt;64.38&lt;/td&gt;
+          &lt;td&gt;229.87&lt;/td&gt;
+          &lt;td&gt;12.06&lt;/td&gt;
+          &lt;td&gt;67318.66&lt;/td&gt;
+          &lt;td&gt;46.93&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;#24&lt;/td&gt;
+          &lt;td&gt;900&lt;/td&gt;
+          &lt;td&gt;65.23%&lt;/td&gt;
+          &lt;td&gt;83&lt;/td&gt;
+          &lt;td&gt;54&lt;/td&gt;
+          &lt;td&gt;130&lt;/td&gt;
+          &lt;td&gt;169&lt;/td&gt;
+          &lt;td&gt;1095&lt;/td&gt;
+          &lt;td&gt;5841&lt;/td&gt;
+          &lt;td&gt;22.37%&lt;/td&gt;
+          &lt;td&gt;10297.71&lt;/td&gt;
+          &lt;td&gt;72.31&lt;/td&gt;
+          &lt;td&gt;226.01&lt;/td&gt;
+          &lt;td&gt;12.31&lt;/td&gt;
+          &lt;td&gt;72455.16&lt;/td&gt;
+          &lt;td&gt;58.98&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;#25&lt;/td&gt;
+          &lt;td&gt;1000&lt;/td&gt;
+          &lt;td&gt;65.22%&lt;/td&gt;
+          &lt;td&gt;97&lt;/td&gt;
+          &lt;td&gt;58&lt;/td&gt;
+          &lt;td&gt;144&lt;/td&gt;
+          &lt;td&gt;227&lt;/td&gt;
+          &lt;td&gt;1128&lt;/td&gt;
+          &lt;td&gt;159366&lt;/td&gt;
+          &lt;td&gt;23.20%&lt;/td&gt;
+          &lt;td&gt;9337.35&lt;/td&gt;
+          &lt;td&gt;72.65&lt;/td&gt;
+          &lt;td&gt;234.34&lt;/td&gt;
+          &lt;td&gt;12.63&lt;/td&gt;
+          &lt;td&gt;69573.91&lt;/td&gt;
+          &lt;td&gt;57.33&lt;/td&gt;
       &lt;/tr&gt;
   &lt;/tbody&gt;
 &lt;/table&gt;
-&lt;h2&gt;7. 考察&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;7-考察&#34;&gt;&lt;/span&gt;
-    &lt;a href=&#34;#7-%e8%80%83%e5%af%9f&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h2&gt;&lt;pre&gt;&lt;code&gt;                    Apache Throughputのボトルネックを調査
-                               │
-             ┌─────────────────┴─────────────────┐
-             │                                   │
-      仮説① CPU使用率が原因               仮説② Apache Worker数が原因
-             │                                   │
-             │                                   │
-     CPU Utilizationを計測             BusyWorkers / IdleWorkersを計測
-             │                                   │
-             └─────────────────┬─────────────────┘
-                               │
-                     十分な相関は確認できず
-                               │
-                               ▼
-               仮説③ CPU Resource Contentionが原因
-                               │
-          ┌────────────────────┴────────────────────┐
-          │                                         │
-  Context Switchを計測                    Run Queueを計測
-          │                                         │
-          └────────────────────┬────────────────────┘
-                               │
-                               ▼
-              Throughputが頭打ちになる時点で
-         Context Switch・Run Queueが急増することを確認
-                               │
-                               ▼
-                CPU SchedulerによるResource Contentionが
-              Throughput制限の主要因であることを検証
-&lt;/code&gt;&lt;/pre&gt;
-&lt;h2&gt;8. まとめ&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;8-まとめ&#34;&gt;&lt;/span&gt;
-    &lt;a href=&#34;#8-%e3%81%be%e3%81%a8%e3%82%81&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;今回の検証では、&lt;/p&gt;
-&lt;p&gt;①&lt;/p&gt;
-&lt;p&gt;CPU使用率だけでは性能限界を説明できなかった。&lt;/p&gt;
-&lt;p&gt;②&lt;/p&gt;
-&lt;p&gt;Apache Worker数も限界ではなかった。&lt;/p&gt;
-&lt;p&gt;③&lt;/p&gt;
-&lt;p&gt;Linux SchedulerによるCPU Resource Contentionが
-Throughputを制限していたと考えられる。&lt;/p&gt;
+
+  &lt;/div&gt;
+&lt;/details&gt;
+&lt;/p&gt;
+&lt;p&gt;集計した数値だけだと、評価するのが少し難しいので、Excelで可視化しました。次の6つのグラフにしました。&lt;/p&gt;
+&lt;h4&gt;6.1.Users vs Throughput&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;61users-vs-throughput&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#61users-vs-throughput&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h4&gt;&lt;details class=&#34;hx:last-of-type:mb-0 hx:rounded-lg hx:bg-neutral-50 hx:dark:bg-neutral-800 hx:p-2 hx:mt-4 hx:group&#34; &gt;
+  &lt;summary class=&#34;hx:flex hx:items-center hx:cursor-pointer hx:select-none hx:list-none hx:p-1 hx:rounded-sm hx:transition-colors hx:hover:bg-gray-100 hx:dark:hover:bg-neutral-800 hx:before:mr-1 hx:before:inline-block hx:before:transition-transform hx:before:content-[&#39;&#39;] hx:dark:before:invert hx:rtl:before:rotate-180 hx:group-open:before:rotate-90&#34;&gt;
+    &lt;strong class=&#34;hx:text-lg&#34;&gt;グラフ&lt;/strong&gt;
+  &lt;/summary&gt;
+  &lt;div class=&#34;hx:p-2 hx:overflow-hidden&#34;&gt;
+    &lt;p&gt;&lt;figure&gt;
+    &lt;img src=&#34;//localhost:1313/blog/sideprojects/apache-throughput-monitoring/images/Users%20vs%20Throughput.jpg&#34; title=&#34;Users vs Throughput&#34; alt=&#34;Users vs Throughput&#34;  data-zoomable loading=&#34;lazy&#34; /&gt;
+    &lt;figcaption&gt;Users vs Throughput&lt;/figcaption&gt;
+  &lt;/figure&gt;&lt;/p&gt;
+&lt;p&gt;■ 観察結果&lt;/p&gt;
+&lt;p&gt;負荷を徐々に増加させると、Throughputもそれに伴って増加し、
+約250～300Users付近で約14,600 Requests/secに到達しました。
+しかし、それ以降はUsersをさらに増加させてもThroughputは伸びず、
+350 Users以降では逆に低下する傾向が確認できました。&lt;/p&gt;
+&lt;p&gt;つまり、本環境では「ユーザ数を増やせばスループットも比例して増える」わけではないということが分かります。&lt;/p&gt;
+&lt;p&gt;■ 疑問&lt;/p&gt;
+&lt;p&gt;それでは、なぜThroughputは約300 Users付近で頭打ちになったのでしょうか？
+一番考えやすい要因は、&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;CPU使用率が上限に達した&lt;/li&gt;
+&lt;li&gt;Apache Worker数が不足した&lt;/li&gt;
+&lt;li&gt;OS側で別のボトルネックが発生した&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;などが考えられます。&lt;/p&gt;
+&lt;p&gt;なので次はCPU使用率との関係を確認します。&lt;/p&gt;
+
+  &lt;/div&gt;
+&lt;/details&gt;
+
+&lt;h4&gt;6.2.Users vs CPU Utilization&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;62users-vs-cpu-utilization&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#62users-vs-cpu-utilization&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h4&gt;&lt;details class=&#34;hx:last-of-type:mb-0 hx:rounded-lg hx:bg-neutral-50 hx:dark:bg-neutral-800 hx:p-2 hx:mt-4 hx:group&#34; &gt;
+  &lt;summary class=&#34;hx:flex hx:items-center hx:cursor-pointer hx:select-none hx:list-none hx:p-1 hx:rounded-sm hx:transition-colors hx:hover:bg-gray-100 hx:dark:hover:bg-neutral-800 hx:before:mr-1 hx:before:inline-block hx:before:transition-transform hx:before:content-[&#39;&#39;] hx:dark:before:invert hx:rtl:before:rotate-180 hx:group-open:before:rotate-90&#34;&gt;
+    &lt;strong class=&#34;hx:text-lg&#34;&gt;グラフ&lt;/strong&gt;
+  &lt;/summary&gt;
+  &lt;div class=&#34;hx:p-2 hx:overflow-hidden&#34;&gt;
+    &lt;p&gt;&lt;figure&gt;
+    &lt;img src=&#34;//localhost:1313/blog/sideprojects/apache-throughput-monitoring/images/Users%20vs%20CPU%20Utilization.jpg&#34; title=&#34;Users vs CPU Utilization&#34; alt=&#34;Users vs Throughput&#34;  data-zoomable loading=&#34;lazy&#34; /&gt;
+    &lt;figcaption&gt;Users vs CPU Utilization&lt;/figcaption&gt;
+  &lt;/figure&gt;&lt;/p&gt;
+&lt;p&gt;■ 観察結果&lt;/p&gt;
+&lt;p&gt;CPU使用率はUsersの増加に伴って上昇し、約300 Users付近では約75%に達しています。
+しかし興味深いことに、その後Usersをさらに増やしてもCPU使用率は増えず、むしろ65%前後まで低下しています。&lt;/p&gt;
+&lt;p&gt;■ 考察&lt;/p&gt;
+&lt;p&gt;もしCPU性能そのものが限界であれば、CPU使用率は100%近くまで上昇すると予想されます。
+しかし今回の結果では、CPUはまだ余力を残した状態でありながら、Throughputだけが低下しています。&lt;/p&gt;
+&lt;p&gt;つまり、CPU使用率だけでは今回のボトルネックを説明できません。&lt;/p&gt;
+&lt;p&gt;■ 疑問
+ではApache Workerが不足していたのでしょうか？&lt;/p&gt;
+&lt;p&gt;なので次にApache Worker数を確認します。&lt;/p&gt;
+
+  &lt;/div&gt;
+&lt;/details&gt;
+
+&lt;h4&gt;6.3.Users vs Aapche Workers&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;63users-vs-aapche-workers&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#63users-vs-aapche-workers&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h4&gt;&lt;details class=&#34;hx:last-of-type:mb-0 hx:rounded-lg hx:bg-neutral-50 hx:dark:bg-neutral-800 hx:p-2 hx:mt-4 hx:group&#34; &gt;
+  &lt;summary class=&#34;hx:flex hx:items-center hx:cursor-pointer hx:select-none hx:list-none hx:p-1 hx:rounded-sm hx:transition-colors hx:hover:bg-gray-100 hx:dark:hover:bg-neutral-800 hx:before:mr-1 hx:before:inline-block hx:before:transition-transform hx:before:content-[&#39;&#39;] hx:dark:before:invert hx:rtl:before:rotate-180 hx:group-open:before:rotate-90&#34;&gt;
+    &lt;strong class=&#34;hx:text-lg&#34;&gt;グラフ&lt;/strong&gt;
+  &lt;/summary&gt;
+  &lt;div class=&#34;hx:p-2 hx:overflow-hidden&#34;&gt;
+    &lt;p&gt;&lt;figure&gt;
+    &lt;img src=&#34;//localhost:1313/blog/sideprojects/apache-throughput-monitoring/images/Users%20vs%20Aapche%20Workers.jpg&#34; title=&#34;Users vs Aapche Workers&#34; alt=&#34;Users vs Throughput&#34;  data-zoomable loading=&#34;lazy&#34; /&gt;
+    &lt;figcaption&gt;Users vs Aapche Workers&lt;/figcaption&gt;
+  &lt;/figure&gt;&lt;/p&gt;
+&lt;p&gt;■ 観察結果&lt;/p&gt;
+&lt;p&gt;ユーザ数の増加に伴い、BusyWorkersは徐々に増加しています。
+一方で、Throughputが低下し始める350Users以降でも、BusyWorkersはまだ増加していることが確認できました。&lt;/p&gt;
+&lt;p&gt;■ 考察&lt;/p&gt;
+&lt;p&gt;Apacheは負荷増加に応じてWorkerを割り当て続けていまうｓ。つまり、Worker数が不足して処理できなくなったわけではありませんでした。
+少なくとも今回の検証では、Apache Worker数がボトルネックになっているとは考えにくいと思います。&lt;/p&gt;
+&lt;p&gt;■ 疑問&lt;/p&gt;
+&lt;p&gt;では、Apache Workerが処理を続けているにもかかわらず、なぜThroughputは増えなくなったのでしょうか？&lt;/p&gt;
+&lt;p&gt;次にLinuxカーネル側のCPUスケジューリング状況を確認する。&lt;/p&gt;
+
+  &lt;/div&gt;
+&lt;/details&gt;
+
+&lt;h4&gt;6.4.Users vs Context Switch&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;64users-vs-context-switch&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#64users-vs-context-switch&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h4&gt;&lt;details class=&#34;hx:last-of-type:mb-0 hx:rounded-lg hx:bg-neutral-50 hx:dark:bg-neutral-800 hx:p-2 hx:mt-4 hx:group&#34; &gt;
+  &lt;summary class=&#34;hx:flex hx:items-center hx:cursor-pointer hx:select-none hx:list-none hx:p-1 hx:rounded-sm hx:transition-colors hx:hover:bg-gray-100 hx:dark:hover:bg-neutral-800 hx:before:mr-1 hx:before:inline-block hx:before:transition-transform hx:before:content-[&#39;&#39;] hx:dark:before:invert hx:rtl:before:rotate-180 hx:group-open:before:rotate-90&#34;&gt;
+    &lt;strong class=&#34;hx:text-lg&#34;&gt;グラフ&lt;/strong&gt;
+  &lt;/summary&gt;
+  &lt;div class=&#34;hx:p-2 hx:overflow-hidden&#34;&gt;
+    &lt;p&gt;&lt;figure&gt;
+    &lt;img src=&#34;//localhost:1313/blog/sideprojects/apache-throughput-monitoring/images/Users%20vs%20Context%20Switch.jpg&#34; title=&#34;Users vs Context Switch&#34; alt=&#34;Users vs Throughput&#34;  data-zoomable loading=&#34;lazy&#34; /&gt;
+    &lt;figcaption&gt;Users vs Context Switch&lt;/figcaption&gt;
+  &lt;/figure&gt;&lt;/p&gt;
+&lt;p&gt;■ 観察結果&lt;/p&gt;
+&lt;p&gt;Context Switch数は、ユーザ数の増加に伴って増加しています。
+特にCPU使用率が約70%付近に達した以降も、Context Switchは高い値を維持しています。&lt;/p&gt;
+&lt;p&gt;■ 考察&lt;/p&gt;
+&lt;p&gt;Context Switchとは、CPUが実行するスレッドを切り替える回数であるため、
+ユーザ数の増加により、CPUは多数のPHP処理を順番に切り替えながら実行していることが分かります。&lt;/p&gt;
+&lt;p&gt;CPU自身の計算能力よりも、スレッド切替えのオーバーヘッドが増えている可能性がある。&lt;/p&gt;
+&lt;p&gt;■ 疑問&lt;/p&gt;
+&lt;p&gt;しかし、Context Switchだけでは、CPU待ちが本当に発生しているかは判断できるのは難しいと思います。&lt;/p&gt;
+&lt;p&gt;なので、次にRun Queueを確認する。&lt;/p&gt;
+
+  &lt;/div&gt;
+&lt;/details&gt;
+
+&lt;h4&gt;6.5.Users vs Run Queue&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;65users-vs-run-queue&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#65users-vs-run-queue&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h4&gt;&lt;details class=&#34;hx:last-of-type:mb-0 hx:rounded-lg hx:bg-neutral-50 hx:dark:bg-neutral-800 hx:p-2 hx:mt-4 hx:group&#34; &gt;
+  &lt;summary class=&#34;hx:flex hx:items-center hx:cursor-pointer hx:select-none hx:list-none hx:p-1 hx:rounded-sm hx:transition-colors hx:hover:bg-gray-100 hx:dark:hover:bg-neutral-800 hx:before:mr-1 hx:before:inline-block hx:before:transition-transform hx:before:content-[&#39;&#39;] hx:dark:before:invert hx:rtl:before:rotate-180 hx:group-open:before:rotate-90&#34;&gt;
+    &lt;strong class=&#34;hx:text-lg&#34;&gt;グラフ&lt;/strong&gt;
+  &lt;/summary&gt;
+  &lt;div class=&#34;hx:p-2 hx:overflow-hidden&#34;&gt;
+    &lt;p&gt;&lt;figure&gt;
+    &lt;img src=&#34;//localhost:1313/blog/sideprojects/apache-throughput-monitoring/images/Users%20vs%20Run%20Queue.jpg&#34; title=&#34;Users vs Run Queue&#34; alt=&#34;Users vs Throughput&#34;  data-zoomable loading=&#34;lazy&#34; /&gt;
+    &lt;figcaption&gt;Users vs Run Queue&lt;/figcaption&gt;
+  &lt;/figure&gt;&lt;/p&gt;
+&lt;p&gt;■ 観察結果&lt;/p&gt;
+&lt;p&gt;Run Queueは、ユーザ数の増加に伴い増加しています。
+特にThroughputが頭打ちになる付近では、Run Queueも高い値を維持しています。&lt;/p&gt;
+&lt;p&gt;■ 考察&lt;/p&gt;
+&lt;p&gt;Run Queueは、CPU実行待ちスレッド数を表すので、つまり、CPUで実行したい処理が増え、すぐに実行できず待ち行列が発生していることが分かります。&lt;/p&gt;
+&lt;p&gt;CPU使用率はまだ100%ではないのに、CPUスケジューラによる待ち時間が増加しています。
+⇒&lt;strong&gt;Throughputを制限している要因は、CPU使用率そのものではなく、CPU Resource Contentionであると考えられます。&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;■ 疑問&lt;/p&gt;
+&lt;p&gt;CPU待ちは確認できました。では、利用者から見えるResponse Timeには、どのような影響が出ているのでしょうか？&lt;/p&gt;
+
+  &lt;/div&gt;
+&lt;/details&gt;
+
+&lt;h4&gt;6.6.Users vs Response Time&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;66users-vs-response-time&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#66users-vs-response-time&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h4&gt;&lt;details class=&#34;hx:last-of-type:mb-0 hx:rounded-lg hx:bg-neutral-50 hx:dark:bg-neutral-800 hx:p-2 hx:mt-4 hx:group&#34; &gt;
+  &lt;summary class=&#34;hx:flex hx:items-center hx:cursor-pointer hx:select-none hx:list-none hx:p-1 hx:rounded-sm hx:transition-colors hx:hover:bg-gray-100 hx:dark:hover:bg-neutral-800 hx:before:mr-1 hx:before:inline-block hx:before:transition-transform hx:before:content-[&#39;&#39;] hx:dark:before:invert hx:rtl:before:rotate-180 hx:group-open:before:rotate-90&#34;&gt;
+    &lt;strong class=&#34;hx:text-lg&#34;&gt;グラフ&lt;/strong&gt;
+  &lt;/summary&gt;
+  &lt;div class=&#34;hx:p-2 hx:overflow-hidden&#34;&gt;
+    &lt;p&gt;&lt;figure&gt;
+    &lt;img src=&#34;//localhost:1313/blog/sideprojects/apache-throughput-monitoring/images/Users%20vs%20Response%20Time.jpg&#34; title=&#34;Users vs Response Time&#34; alt=&#34;Users vs Throughput&#34;  data-zoomable loading=&#34;lazy&#34; /&gt;
+    &lt;figcaption&gt;Users vs Response Time&lt;/figcaption&gt;
+  &lt;/figure&gt;&lt;/p&gt;
+&lt;p&gt;■ 観察結果&lt;/p&gt;
+&lt;p&gt;スループットが頭打ちになる付近から、Average Response Timeも急激に増加しています。同時に95%、99% Lineも大きく増加しています。&lt;/p&gt;
+&lt;p&gt;■ 考察&lt;/p&gt;
+&lt;p&gt;CPU待ち時間が増えることで、PHP処理開始までの待ち時間が長くなり、Response Timeが悪化したと考えられます。
+この結果、スループットは増えず、一方でResponse Timeだけが悪化しています。&lt;/p&gt;
+
+  &lt;/div&gt;
+&lt;/details&gt;
+
+&lt;h2&gt;7. 結論&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;7-結論&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#7-%e7%b5%90%e8%ab%96&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;6.1.～6.6.の観察結果と考察から、以下の結論が得られました。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;CPU使用率だけでは性能限界を説明できなかった。&lt;/li&gt;
+&lt;li&gt;Apache Worker数も限界ではなかった。&lt;/li&gt;
+&lt;li&gt;Context Switchだけでは、CPU待ちが本当に発生しているかは判断できない&lt;/li&gt;
+&lt;li&gt;LinuxスケジューラによるCPU Resource ContentionがThroughputを制限していたと考えられる。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;これまでの検証流れを検証フロー図に描いてみました。&lt;/p&gt;
+&lt;details class=&#34;hx:last-of-type:mb-0 hx:rounded-lg hx:bg-neutral-50 hx:dark:bg-neutral-800 hx:p-2 hx:mt-4 hx:group&#34; &gt;
+  &lt;summary class=&#34;hx:flex hx:items-center hx:cursor-pointer hx:select-none hx:list-none hx:p-1 hx:rounded-sm hx:transition-colors hx:hover:bg-gray-100 hx:dark:hover:bg-neutral-800 hx:before:mr-1 hx:before:inline-block hx:before:transition-transform hx:before:content-[&#39;&#39;] hx:dark:before:invert hx:rtl:before:rotate-180 hx:group-open:before:rotate-90&#34;&gt;
+    &lt;strong class=&#34;hx:text-lg&#34;&gt;検証フロー図を展開&lt;/strong&gt;
+  &lt;/summary&gt;
+  &lt;div class=&#34;hx:p-2 hx:overflow-hidden&#34;&gt;
+    &lt;div role=&#34;img&#34; aria-label=&#34;Diagram&#34;&gt;
+  &lt;pre class=&#34;mermaid hx:mt-6&#34;&gt;
+    graph TB
+
+Users増加
+    --&amp;gt; Throughput低下
+
+Throughput低下
+    --&amp;gt; 仮説1[&amp;#34;仮説：CPU不足？&amp;#34;]
+
+仮説1
+    --&amp;gt; CPU使用率
+
+CPU使用率
+    --&amp;gt;|&amp;#34;約75%&amp;#34;| 否定1[&amp;#34;100%高騰ではなかった&amp;#34;]
+
+否定1
+    --&amp;gt; 仮説2[&amp;#34;仮説：Apache Worker不足？&amp;#34;]
+
+仮説2
+    --&amp;gt; BusyWorkers
+
+BusyWorkers
+    --&amp;gt;|&amp;#34;余裕あり&amp;#34;| 否定2[&amp;#34;Worker不足ではなかった&amp;#34;]
+
+否定2
+    --&amp;gt; 仮説3[&amp;#34;仮説：CPUスケジューラ？&amp;#34;]
+
+仮説3
+    --&amp;gt; ContextSwitch
+
+ContextSwitch
+    --&amp;gt;|高い値を維持している| RunQueue
+
+RunQueue
+    --&amp;gt;|高い値を維持している| ResponseTime
+
+ResponseTime
+    --&amp;gt;|LinuxスケジューラによるCPU Resource Contentionがスループットを制限している| Throughput低下
+
+Throughput低下
+    --&amp;gt; 結論[&amp;#34;CPU Resource Contention&amp;#34;]
+  &lt;/pre&gt;
+&lt;/div&gt;
+  &lt;/div&gt;
+&lt;/details&gt;
+
+&lt;p&gt;&lt;strong&gt;本検証では、Apache Worker不足が原因ではなく、Linux スケジューラによるCPU Resource Contentionが、スループット低下およびResponse Time悪化の主要因であることが確認できました。&lt;/strong&gt;&lt;/p&gt;
       </description>
     </item>
     
